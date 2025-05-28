@@ -6,6 +6,9 @@ export default function Home() {
   return (
     <div>
         <Header></Header>
+        <div className="h-screen">
+
+        </div>
         <Footer></Footer>
     </div>
   )
