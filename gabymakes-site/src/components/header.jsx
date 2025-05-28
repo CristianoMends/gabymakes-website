@@ -2,13 +2,16 @@ import { FiUser, FiSearch } from 'react-icons/fi';
 import { HiOutlineShoppingBag } from "react-icons/hi2";
 import logo from '../assets/logo-bg-transparent-2.png';
 import { useState, useRef, useEffect } from 'react';
-import LoginPopup from './login'; // Importe o componente LoginPopup
+import LoginPopup from './login';
+import { useNavigate } from 'react-router-dom';
+
 
 export default function Header() {
     const [showLogin, setShowLogin] = useState(false);
     const [showSearchMobile, setShowSearchMobile] = useState(false);
     const loginContainerRef = useRef(null);
     const searchContainerRef = useRef(null);
+    const navigate = useNavigate();
 
     // Fecha Login e Busca ao clicar fora
     useEffect(() => {
@@ -37,7 +40,8 @@ export default function Header() {
             <header className="bg-pink-300 px-8 py-6 flex items-center shadow-md">
 
                 {/* Logo - alinhado à esquerda */}
-                <div className="flex-shrink-0">
+                <div className="flex-shrink-0 cursor-pointer" onClick={() => navigate('/')}
+                >
                     <img src={logo} alt="Logo Gaby" className="h-10" />
                 </div>
 
@@ -59,7 +63,7 @@ export default function Header() {
                     <div className="relative" ref={loginContainerRef}>
                         <div
                             className="flex items-center space-x-2 cursor-pointer"
-                            onClick={() => setShowLogin(prev => !prev)}
+                            onClick={() => navigate('/login')}
                         >
                             <FiUser size={30} className="text-gray-800" />
                             <div className="text-sm leading-tight hidden md:block">
