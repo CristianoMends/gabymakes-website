@@ -21,6 +21,14 @@ export class ProductsService {
     return this.productRepo.find();
   }
 
+  async findById(id: string): Promise<Product | null> {
+    const p = this.productRepo.findOneBy({ id });
+
+    if (!p) throw new NotFoundException('Produto não encontrado');
+
+    return p;
+  }
+
   async update(id: string, data: UpdateProductDto): Promise<Product> {
     const product = await this.productRepo.findOneBy({ id });
     if (!product) throw new NotFoundException('Produto não encontrado');

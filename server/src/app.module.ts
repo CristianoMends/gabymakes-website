@@ -5,6 +5,7 @@ import { ProductsModule } from './products/products.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { UploadModule } from './upload/upload.module';
+import { SectionsModule } from './sections/sections.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { UploadModule } from './upload/upload.module';
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: true,
     }),
+    SectionsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

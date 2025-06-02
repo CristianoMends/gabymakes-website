@@ -32,6 +32,15 @@ export class ProductsController {
   async findAll() {
     return await this.productService.findAll();
   }
+  @Get(':id')
+  @ApiParam({ name: 'id', type: 'string' })
+  @ApiOperation({ summary: 'Obter produto por id' })
+  async findById(
+    @Param('id', new ParseUUIDPipe()) id: string,
+
+  ) {
+    return await this.productService.findById(id);
+  }
 
   @Patch(':id')
   @ApiOperation({ summary: 'Atualizar um produto pelo ID' })
