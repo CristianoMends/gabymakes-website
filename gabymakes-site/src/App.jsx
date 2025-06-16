@@ -4,6 +4,9 @@ import PageNotFound from './pages/pageNotFound'
 import LoginPage from './pages/loginPage'
 import RegisterPage from './pages/register'
 import AboutPage from './pages/about'
+import AdminProductList from './pages/adminProductList'
+import AdminProductCreate from './pages/adminProductCreate'
+import ProductDetailPage from './pages/detailsProduct'
 
 function App() {
     return (
@@ -14,6 +17,10 @@ function App() {
                 <Route path="login" element={<LoginPage />} />
                 <Route path="cadastro" element={<RegisterPage />} />
                 <Route path="sobre" element={<AboutPage />} />
+                <Route path="admin/products" element={<AdminProductList />} />
+                <Route path="admin/products/create" element={<AdminProductCreate />} />
+                <Route path="details/:id" element={<ProductDetailPage />} />
+
             </Routes>
         </Router>
     )
