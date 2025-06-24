@@ -14,12 +14,18 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { ProductsService } from './products.service';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ApiBody, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { Roles } from 'src/auth/decorators/roles.decorator';
+
 
 @ApiTags('products')
 @Controller('products')
 export class ProductsController {
   constructor(private readonly productService: ProductsService) { }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   @Post()
   @ApiOperation({ summary: 'Cadastrar um novo produto' })
   @ApiBody({ type: CreateProductDto })
@@ -42,6 +48,8 @@ export class ProductsController {
     return await this.productService.findById(id);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   @Patch(':id')
   @ApiOperation({ summary: 'Atualizar um produto pelo ID' })
   @ApiParam({ name: 'id', type: 'string' })

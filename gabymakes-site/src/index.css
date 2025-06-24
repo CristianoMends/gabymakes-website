@@ -3,3 +3,16 @@
 body {
   font-family: 'Poppins', ui-sans-serif, system-ui;
 }
+
+@keyframes gradient-spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.animate-gradient-spin {
+    animation: gradient-spin 1.2s linear infinite; 
+}
