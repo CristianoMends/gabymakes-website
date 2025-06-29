@@ -1,13 +1,17 @@
+import { useEffect, useState } from "react";
 import { FaEdit } from "react-icons/fa";
 import { Link } from "react-router-dom";
 
-const mockProducts = Array(10).fill({
-  image: "/path/to/image.jpg", // Substitua com o caminho real da imagem
-  name: "Batom vermelho Sephora",
-  quantity: 99,
-});
-
 export default function AdminProductList() {
+  const [products, setProducts] = useState([]);
+
+  useEffect(() => {
+    fetch("http://localhost:3000/products")
+      .then((response) => response.json())
+      .then((data) => setProducts(data))
+      .catch(() => setProducts([]));
+  }, []);
+
   return (
     <div className="bg-[#fafafa] min-h-screen p-6">
       {/* Caminho de navegação */}
@@ -35,21 +39,23 @@ export default function AdminProductList() {
             </tr>
           </thead>
           <tbody>
-            {mockProducts.map((product, index) => (
+            {products.map((product, index) => (
               <tr key={index} className="hover:bg-gray-50 transition-colors">
                 <td className="py-2 px-3">
                   <img
-                    src={product.image}
-                    alt={product.name}
+                    src={product.imageUrl}
+                    alt={product.description}
                     className="w-12 h-12 object-cover rounded"
                   />
                 </td>
-                <td className="px-3">{product.name}</td>
+                <td className="px-3">{product.description}</td>
                 <td className="px-3">{product.quantity}</td>
                 <td className="px-3">
-                  <button className="text-gray-700 hover:cursor-pointer hover:text-pink-500">
-                    <FaEdit />
-                  </button>
+                  <Link to={`/admin/products/edit/${product.id}`}>
+                    <button className="text-gray-700 hover:cursor-pointer hover:text-pink-500">
+                      <FaEdit />
+                    </button>
+                  </Link>
                 </td>
               </tr>
             ))}

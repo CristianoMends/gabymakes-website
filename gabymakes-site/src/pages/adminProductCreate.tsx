@@ -2,11 +2,12 @@ import { useState } from "react";
 
 export default function AdminProductCreate() {
   const [form, setForm] = useState({
-    name: "",
     price: "",
     quantity: "",
     description: "",
-    image: null as File | null,
+    brand: "",
+    category: "",
+    imageUrl: "",
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -14,14 +15,42 @@ export default function AdminProductCreate() {
     setForm({ ...form, [name]: value });
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null;
-    setForm({ ...form, image: file });
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log(form);
+
+    const formData = new FormData();
+    formData.append("description", form.description);
+    formData.append("price", form.price);
+    formData.append("quantity", form.quantity);
+    formData.append("brand", form.brand);
+    formData.append("category", form.category);
+    formData.append("imageUrl", form.imageUrl);
+
+    const response = await fetch("http://localhost:3000/products", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json", // Não definir Content-Type para FormData
+      },
+      body: JSON.stringify({
+        description: form.description,
+        price: Number(form.price),
+        quantity: Number(form.quantity),
+        brand: form.brand,
+        category: form.category,
+        imageUrl: form.imageUrl,
+      }),
+    });
+
+    try {
+      if (response.ok) {
+        alert("Produto cadastrado com sucesso!");
+        // Limpar formulário ou redirecionar
+      } else {
+        alert("Erro ao cadastrar produto.");
+      }
+    } catch (error) {
+      alert("Erro de conexão.");
+    }
   };
 
   return (
@@ -35,17 +64,6 @@ export default function AdminProductCreate() {
         <div className="grid md:grid-cols-2 gap-6">
           {/* Coluna esquerda */}
           <div className="flex flex-col gap-4">
-            <div>
-              <label className="mb-1 font-semibold block">Nome</label>
-              <input
-                type="text"
-                name="name"
-                value={form.name}
-                onChange={handleChange}
-                placeholder="insira o nome"
-                className="border rounded px-3 py-2 w-full"
-              />
-            </div>
 
             <div>
               <label className="mb-1 font-semibold block">Preço</label>
@@ -86,6 +104,30 @@ export default function AdminProductCreate() {
               className="border rounded px-3 py-2 w-full h-40 resize-none"
             />
           </div>
+
+           <div>
+              <label className="mb-1 font-semibold block">Marca</label>
+              <input
+                type="text"
+                name="brand"
+                value={form.brand}
+                onChange={handleChange}
+                placeholder="insira a marca"
+                className="border rounded px-3 py-2 w-full"
+              />
+            </div>
+            <div>
+              <label className="mb-1 font-semibold block">Categoria</label>
+              <input
+                type="text"
+                name="category"
+                value={form.category}
+                onChange={handleChange}
+                placeholder="insira a categoria"
+                className="border rounded px-3 py-2 w-full"
+              />
+            </div>
+
         </div>
 
         {/* Campo de imagem e botão */}
@@ -93,10 +135,12 @@ export default function AdminProductCreate() {
           <div>
             <label className="mb-1 font-semibold block">Imagem</label>
             <input
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
-              className="bg-[#FFA5BD] text-white px-4 py-2 rounded cursor-pointer w-fit"
+              type="text"
+              name="imageUrl"
+              value={form.imageUrl}
+              onChange={handleChange}
+              placeholder="insira a URL da imagem"
+              className="border rounded px-3 py-2 w-full"
             />
           </div>
 
