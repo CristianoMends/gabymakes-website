@@ -6,6 +6,7 @@ import RegisterPage from './pages/register'
 import AboutPage from './pages/about'
 import AdminProductList from './pages/adminProductList'
 import AdminProductCreate from './pages/adminProductCreate'
+import AdminProductEdit from './pages/adminProductEdit'
 import ProductDetailPage from './pages/detailsProduct'
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
                 <Route path="sobre" element={<AboutPage />} />
                 <Route path="admin/products" element={<AdminProductList />} />
                 <Route path="admin/products/create" element={<AdminProductCreate />} />
+                <Route path="admin/products/edit/:id" element={<AdminProductEdit />} />
                 <Route path="details/:id" element={<ProductDetailPage />} />
 
             </Routes>
