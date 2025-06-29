@@ -1,4 +1,3 @@
-// upload/strategies/local-upload.strategy.ts
 import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { createWriteStream, existsSync, mkdirSync, readFileSync } from 'fs';
 import { join } from 'path';
@@ -27,7 +26,7 @@ export class LocalUploadStrategy implements UploadStrategy {
       stream.write(file.buffer);
       stream.end();
 
-      return filename;
+      return `http://localhost:3000/upload/image/${filename}`;
     } catch (error) {
       throw new InternalServerErrorException('Erro ao salvar a imagem localmente');
     }

@@ -1,10 +1,15 @@
-// pages/cadastro.tsx
+
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { FcGoogle } from 'react-icons/fc';
 import HeaderVariant from '../components/header-variant';
 import Breadcrumb from '../components/breadcrumb';
 import Footer from '../components/footer';
+import { useGoogleAuthService } from '../services/googleAuthService';
+
+
+
+const API_BASE_URL = 'http://localhost:3000';
 
 export default function RegisterPage() {
     const [formData, setFormData] = useState({
@@ -16,6 +21,7 @@ export default function RegisterPage() {
         whatsapp: '',
         gender: '',
     });
+    const navigate = useNavigate();
 
     useEffect(() => {
         document.title = 'Cadastro - GabyMakes';
@@ -26,24 +32,76 @@ export default function RegisterPage() {
         setFormData((prev) => ({ ...prev, [name]: value }));
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
 
-        if (formData.password !== formData.confirmPassword) {
-            alert('As senhas não coincidem');
-            return;
-        }
+    const handleGoogleRegisterSuccess = async (credentialResponse) => {
+        
+        const googleAuthCode = credentialResponse.code; // <<-- AGORA É 'code'
+
+        
 
         try {
-            const response = await fetch('/api/cadastro', {
+            const response = await fetch(`${API_BASE_URL}/auth/google`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData),
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ code: googleAuthCode }), // <<-- Envia 'code'
             });
 
             const result = await response.json();
             if (response.ok) {
-                alert('Cadastro realizado com sucesso!');
+                
+
+
+                
+
+
+
+                navigate('/dashboard');
+            } else {
+                
+            }
+        } catch (error) {
+            
+            
+        }
+    };
+
+    const handleGoogleRegisterError = (errorResponse) => {
+        
+        
+    };
+
+    const registerWithGoogle = useGoogleAuthService(handleGoogleRegisterSuccess, handleGoogleRegisterError);
+
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        if (formData.password !== formData.confirmPassword) {
+            
+            return;
+        }
+
+
+        const { confirmPassword, ...dataToSend } = formData;
+
+        try {
+
+            const response = await fetch(`${API_BASE_URL}/auth/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dataToSend),
+            });
+
+            const result = await response.json();
+            if (response.ok) {
+                
+
+
+                
+
+
                 setFormData({
                     firstName: '',
                     lastName: '',
@@ -53,11 +111,14 @@ export default function RegisterPage() {
                     whatsapp: '',
                     gender: '',
                 });
+                navigate('/dashboard');
             } else {
-                alert(result.message || 'Erro ao cadastrar');
+
+                
             }
         } catch (error) {
-            alert('Erro ao enviar requisição');
+            
+            
         }
     };
 
@@ -66,40 +127,44 @@ export default function RegisterPage() {
             <HeaderVariant />
             <Breadcrumb />
             <div className="px-4 py-10 max-w-md mx-auto shadow-[0px_2px_8px_rgba(0,0,0,0.3)] h-max-content">
-                <button className="cursor-pointer w-full border border-gray-300 py-2 rounded-full flex items-center justify-center mb-6 hover:border-gray-400">
+                {/* Botão para "Cadastrar com Google" */}
+                <button
+                    onClick={() => registerWithGoogle()}
+                    className="cursor-pointer w-full border border-gray-300 py-2 rounded-full flex items-center justify-center mb-6 hover:border-gray-400"
+                >
                     <FcGoogle className="mr-2" size={20} />
-                    <span className="font-medium text-sm">Cadastrar com google</span>
+                    <span className="font-medium text-sm">Cadastrar com Google</span>
                 </button>
 
                 <form className="space-y-4" onSubmit={handleSubmit}>
                     <div>
-                        <label className="block font-medium text-sm mb-1">Primeiro nome</label>
-                        <input type="text" name="firstName" value={formData.firstName} onChange={handleChange} placeholder="insira seu primeiro nome" className="w-full border px-3 py-2 rounded" />
+                        <label htmlFor="firstName" className="block font-medium text-sm mb-1">Primeiro nome</label>
+                        <input type="text" id="firstName" name="firstName" value={formData.firstName} onChange={handleChange} placeholder="insira seu primeiro nome" className="w-full border px-3 py-2 rounded" required />
                     </div>
 
                     <div>
-                        <label className="block font-medium text-sm mb-1">Sobrenome</label>
-                        <input type="text" name="lastName" value={formData.lastName} onChange={handleChange} placeholder="insira seu sobrenome" className="w-full border px-3 py-2 rounded" />
+                        <label htmlFor="lastName" className="block font-medium text-sm mb-1">Sobrenome</label>
+                        <input type="text" id="lastName" name="lastName" value={formData.lastName} onChange={handleChange} placeholder="insira seu sobrenome" className="w-full border px-3 py-2 rounded" required />
                     </div>
 
                     <div>
-                        <label className="block font-medium text-sm mb-1">E-mail</label>
-                        <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="insira seu email" className="w-full border px-3 py-2 rounded" />
+                        <label htmlFor="email" className="block font-medium text-sm mb-1">E-mail</label>
+                        <input type="email" id="email" name="email" value={formData.email} onChange={handleChange} placeholder="insira seu email" className="w-full border px-3 py-2 rounded" required />
                     </div>
 
                     <div>
-                        <label className="block font-medium text-sm mb-1">Senha</label>
-                        <input type="password" name="password" value={formData.password} onChange={handleChange} placeholder="crie uma senha" className="w-full border px-3 py-2 rounded" />
+                        <label htmlFor="password" className="block font-medium text-sm mb-1">Senha</label>
+                        <input type="password" id="password" name="password" value={formData.password} onChange={handleChange} placeholder="crie uma senha" className="w-full border px-3 py-2 rounded" required />
                     </div>
 
                     <div>
-                        <label className="block font-medium text-sm mb-1">Repetir senha</label>
-                        <input type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} placeholder="repita sua senha" className="w-full border px-3 py-2 rounded" />
+                        <label htmlFor="confirmPassword" className="block font-medium text-sm mb-1">Repetir senha</label>
+                        <input type="password" id="confirmPassword" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} placeholder="repita sua senha" className="w-full border px-3 py-2 rounded" required />
                     </div>
 
                     <div>
-                        <label className="block font-medium text-sm mb-1">Número WhatsApp</label>
-                        <input type="text" name="whatsapp" value={formData.whatsapp} onChange={handleChange} placeholder="(00) 0 0000-0000" className="w-full border px-3 py-2 rounded" />
+                        <label htmlFor="whatsapp" className="block font-medium text-sm mb-1">Número WhatsApp</label>
+                        <input type="tel" id="whatsapp" name="whatsapp" value={formData.whatsapp} onChange={handleChange} placeholder="(00) 0 0000-0000" className="w-full border px-3 py-2 rounded" />
                     </div>
 
                     <div>

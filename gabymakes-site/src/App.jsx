@@ -8,13 +8,13 @@ import AdminProductList from './pages/adminProductList'
 import AdminProductCreate from './pages/adminProductCreate'
 import AdminProductEdit from './pages/adminProductEdit'
 import ProductDetailPage from './pages/detailsProduct'
+import MessageContainer from './components/messageContainer'
 
 function App() {
     return (
         <Router>
             <Routes>
                 <Route path="/" element={<Home />} />
-                <Route path="*" element={<PageNotFound />} />
                 <Route path="login" element={<LoginPage />} />
                 <Route path="cadastro" element={<RegisterPage />} />
                 <Route path="sobre" element={<AboutPage />} />
@@ -22,8 +22,9 @@ function App() {
                 <Route path="admin/products/create" element={<AdminProductCreate />} />
                 <Route path="admin/products/edit/:id" element={<AdminProductEdit />} />
                 <Route path="details/:id" element={<ProductDetailPage />} />
-
+                <Route path="*" element={<PageNotFound />} />
             </Routes>
+            <MessageContainer />
         </Router>
     )
 }

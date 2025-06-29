@@ -2,18 +2,49 @@ import { FiUser, FiSearch } from 'react-icons/fi';
 import { HiOutlineShoppingBag } from "react-icons/hi2";
 import logo from '../assets/logo-bg-transparent-2.png';
 import { useState, useRef, useEffect } from 'react';
-import LoginPopup from './login';
+import LoginPopup from './login'; 
 import { useNavigate } from 'react-router-dom';
 
 
 export default function Header() {
-    const [showLogin, setShowLogin] = useState(false);
+    const [showLogin, setShowLogin] = useState(false); 
     const [showSearchMobile, setShowSearchMobile] = useState(false);
+    const [userName, setUserName] = useState(''); 
+    const [isLoggedIn, setIsLoggedIn] = useState(false); 
+
     const loginContainerRef = useRef(null);
     const searchContainerRef = useRef(null);
     const navigate = useNavigate();
 
-    // Fecha Login e Busca ao clicar fora
+    useEffect(() => {
+        const checkLoginStatus = () => {
+            const accessToken = localStorage.getItem('accessToken');
+            const currentUserString = localStorage.getItem('currentUser');
+
+            if (accessToken && currentUserString) {
+                setIsLoggedIn(true);
+                try {
+                    const currentUser = JSON.parse(currentUserString);
+                    setUserName(currentUser.firstName || currentUser.email || 'Usuário');
+                } catch (error) {
+                    console.error("Erro ao parsear dados do usuário no Header:", error);
+                    setUserName('Usuário'); 
+                }
+            } else {
+                setIsLoggedIn(false);
+                setUserName(''); 
+            }
+        };
+
+        checkLoginStatus();
+
+        window.addEventListener('storage', checkLoginStatus);
+
+        return () => {
+            window.removeEventListener('storage', checkLoginStatus);
+        };
+    }, []); 
+
     useEffect(() => {
         function handleClickOutside(event) {
             if (
@@ -35,13 +66,20 @@ export default function Header() {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
+    const handleUserIconClick = () => {
+        if (isLoggedIn) {
+            navigate('/dashboard'); 
+        } else {
+            navigate('/login');
+        }
+    };
+
     return (
         <div className="relative">
             <header className="bg-pink-300 px-8 py-6 flex items-center shadow-md">
 
                 {/* Logo - alinhado à esquerda */}
-                <div className="flex-shrink-0 cursor-pointer" onClick={() => navigate('/')}
-                >
+                <div className="flex-shrink-0 cursor-pointer" onClick={() => navigate('/')}>
                     <img src={logo} alt="Logo Gaby" className="h-10" />
                 </div>
 
@@ -57,25 +95,24 @@ export default function Header() {
                     </div>
                 </div>
 
-                {/* Ícones (login, carrinho e busca mobile) */}
                 <div className="flex items-center space-x-4 ml-auto">
-                    {/* Login */}
+
                     <div className="relative" ref={loginContainerRef}>
                         <div
                             className="flex items-center space-x-2 cursor-pointer"
-                            onClick={() => navigate('/login')}
-                        >
+                            onClick={handleUserIconClick}>
                             <FiUser size={30} className="text-gray-800" />
                             <div className="text-sm leading-tight hidden md:block">
-                                <p className="font-semibold text-black">Olá, visitante</p>
-                                <p className="text-gray-800">Entrar na minha conta</p>
+
+                                <p className="font-semibold text-black">
+                                    Olá, {isLoggedIn ? userName : 'visitante'}
+                                </p>
+                                <p className="text-gray-800">
+                                    {isLoggedIn ? 'Minha conta' : 'Entrar na minha conta'}
+                                </p>
+                                {/* ----------------------------------------------------------------- */}
                             </div>
                         </div>
-                        {showLogin && (
-                            <div className="absolute top-full right-0 mt-1 z-50 shadow-lg rounded-md overflow-hidden" style={{ width: '300px', maxWidth: '90vw' }}>
-                                <LoginPopup onClose={() => setShowLogin(false)} />
-                            </div>
-                        )}
                     </div>
 
                     {/* Carrinho */}
