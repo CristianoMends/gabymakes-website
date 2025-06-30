@@ -101,7 +101,7 @@ const LoginPopup = () => {
                 showAppMessage('error', result.message || 'Erro ao fazer login.');
             }
         } catch (error) {
-            showAppMessage('error', 'Erro ao enviar requisição. Verifique sua conexão.');
+            showAppMessage(error, 'Erro ao enviar requisição. Verifique sua conexão.');
         }
     };
 

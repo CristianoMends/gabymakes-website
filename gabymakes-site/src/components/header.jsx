@@ -2,15 +2,16 @@ import { FiUser, FiSearch } from 'react-icons/fi';
 import { HiOutlineShoppingBag } from "react-icons/hi2";
 import logo from '../assets/logo-bg-transparent-2.png';
 import { useState, useRef, useEffect } from 'react';
-import LoginPopup from './login'; 
 import { useNavigate } from 'react-router-dom';
+import CartModal from './CartModal';
 
 
 export default function Header() {
-    const [showLogin, setShowLogin] = useState(false); 
     const [showSearchMobile, setShowSearchMobile] = useState(false);
-    const [userName, setUserName] = useState(''); 
-    const [isLoggedIn, setIsLoggedIn] = useState(false); 
+    const [userName, setUserName] = useState('');
+    const [cartItemCount, setCartItemCount] = useState(0);
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [showCartModal, setShowCartModal] = useState(false);
 
     const loginContainerRef = useRef(null);
     const searchContainerRef = useRef(null);
@@ -28,11 +29,11 @@ export default function Header() {
                     setUserName(currentUser.firstName || currentUser.email || 'Usuário');
                 } catch (error) {
                     console.error("Erro ao parsear dados do usuário no Header:", error);
-                    setUserName('Usuário'); 
+                    setUserName('Usuário');
                 }
             } else {
                 setIsLoggedIn(false);
-                setUserName(''); 
+                setUserName('');
             }
         };
 
@@ -43,17 +44,26 @@ export default function Header() {
         return () => {
             window.removeEventListener('storage', checkLoginStatus);
         };
-    }, []); 
+    }, []);
+
+    // Efeito para atualizar a contagem de itens do carrinho
+    useEffect(() => {
+        const updateCartCount = () => {
+            const cart = JSON.parse(sessionStorage.getItem('cart')) || [];
+            // Soma a quantidade de todos os itens no carrinho
+            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+            setCartItemCount(totalItems);
+        };
+
+        // Ouve o evento personalizado disparado ao adicionar um item
+        window.addEventListener('cartUpdated', updateCartCount);
+        updateCartCount(); // Chama uma vez para definir o estado inicial
+
+        return () => window.removeEventListener('cartUpdated', updateCartCount);
+    }, []);
 
     useEffect(() => {
         function handleClickOutside(event) {
-            if (
-                loginContainerRef.current &&
-                !loginContainerRef.current.contains(event.target)
-            ) {
-                setShowLogin(false);
-            }
-
             if (
                 searchContainerRef.current &&
                 !searchContainerRef.current.contains(event.target)
@@ -68,7 +78,7 @@ export default function Header() {
 
     const handleUserIconClick = () => {
         if (isLoggedIn) {
-            navigate('/dashboard'); 
+            navigate('/dashboard');
         } else {
             navigate('/login');
         }
@@ -116,11 +126,13 @@ export default function Header() {
                     </div>
 
                     {/* Carrinho */}
-                    <div className="relative">
+                    <div className="relative cursor-pointer" onClick={() => setShowCartModal(true)}>
                         <HiOutlineShoppingBag size={30} className="text-gray-800" />
-                        <span className="absolute -top-2 -right-2 bg-white text-pink-500 text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow">
-                            1
-                        </span>
+                        {cartItemCount > 0 && (
+                            <span className="absolute -top-2 -right-2 bg-white text-pink-500 text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow">
+                                {cartItemCount}
+                            </span>
+                        )}
                     </div>
 
                     {/* Ícone de busca mobile */}
@@ -150,6 +162,8 @@ export default function Header() {
                     </div>
                 </div>
             )}
+
+            {showCartModal && <CartModal onClose={() => setShowCartModal(false)} />}
         </div>
     );
 }
