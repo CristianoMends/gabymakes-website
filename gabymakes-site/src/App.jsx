@@ -6,6 +6,7 @@ import RegisterPage from './pages/register'
 import AboutPage from './pages/about'
 import MessageContainer from './components/messageContainer'
 import Destaques from './pages/destaques'
+import Busca from './pages/busca'
 
 function App() {
     return (
@@ -16,6 +17,7 @@ function App() {
                 <Route path="cadastro" element={<RegisterPage />} />
                 <Route path="sobre" element={<AboutPage />} />
                 <Route path="destaques" element={<Destaques />} />
+                <Route path="busca" element={<Busca />} />
                 <Route path="*" element={<PageNotFound />} />
             </Routes>
             <MessageContainer />

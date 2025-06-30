@@ -9,6 +9,7 @@ import CartModal from './CartModal';
 export default function Header() {
     const [showSearchMobile, setShowSearchMobile] = useState(false);
     const [userName, setUserName] = useState('');
+    const [searchQuery, setSearchQuery] = useState('');
     const [cartItemCount, setCartItemCount] = useState(0);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [showCartModal, setShowCartModal] = useState(false);
@@ -84,6 +85,16 @@ export default function Header() {
         }
     };
 
+    const handleSearchSubmit = (event) => {
+        event.preventDefault();
+        if (searchQuery.trim()) {
+            navigate(`/busca?q=${encodeURIComponent(searchQuery)}`);
+            if (showSearchMobile) {
+                setShowSearchMobile(false);
+            }
+        }
+    };
+
     return (
         <div className="relative">
             <header className="bg-pink-300 px-8 py-6 flex items-center shadow-md">
@@ -95,17 +106,32 @@ export default function Header() {
 
                 {/* Barra de busca - desktop */}
                 <div className="hidden md:flex flex-grow justify-center">
-                    <div className="flex items-center bg-pink-100 rounded-full shadow-inner px-4 h-10 w-96 max-w-full">
+                    <form
+                        onSubmit={handleSearchSubmit}
+                        className="flex items-center bg-pink-100 rounded-full shadow-inner px-4 h-10 w-96 max-w-full"
+                    >
                         <input
                             type="text"
                             placeholder="Busca"
                             className="flex-grow bg-transparent focus:outline-none text-gray-700 placeholder-gray-400 text-sm"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
                         />
-                        <FiSearch className="text-gray-700" size={18} />
-                    </div>
+                        <button type="submit" aria-label="Buscar">
+                            <FiSearch className="text-gray-700 cursor-pointer" size={18} />
+                        </button>
+                    </form>
                 </div>
 
                 <div className="flex items-center space-x-4 ml-auto">
+                    {/* Ícone de busca mobile */}
+                    <div className="md:hidden">
+                        <FiSearch
+                            size={22}
+                            className="text-gray-800 cursor-pointer"
+                            onClick={() => setShowSearchMobile(prev => !prev)}
+                        />
+                    </div>
 
                     <div className="relative" ref={loginContainerRef}>
                         <div
@@ -134,32 +160,28 @@ export default function Header() {
                             </span>
                         )}
                     </div>
-
-                    {/* Ícone de busca mobile */}
-                    <div className="md:hidden">
-                        <FiSearch
-                            size={22}
-                            className="text-gray-800"
-                            onClick={() => setShowSearchMobile(prev => !prev)}
-                        />
-                    </div>
                 </div>
             </header>
 
             {/* Barra de busca MOBILE flutuante */}
             {showSearchMobile && (
-                <div
-                    ref={searchContainerRef}
-                    className="absolute top-full left-0 w-full bg-pink-100 px-4 py-2 z-40 shadow"
-                >
-                    <div className="flex items-center bg-white rounded-full px-4 h-10 shadow-inner">
+                <div ref={searchContainerRef} className="absolute top-full left-0 w-full bg-pink-100 px-4 py-2 z-40 shadow-lg">
+                    <form
+                        onSubmit={handleSearchSubmit}
+                        className="flex items-center bg-white rounded-full px-4 h-10 shadow-inner"
+                    >
                         <input
                             type="text"
                             placeholder="Buscar..."
                             className="flex-grow bg-transparent focus:outline-none text-gray-700 placeholder-gray-400 text-sm"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            autoFocus
                         />
-                        <FiSearch className="text-gray-700" size={18} />
-                    </div>
+                        <button type="submit" aria-label="Buscar">
+                            <FiSearch className="text-gray-700 cursor-pointer" size={18} />
+                        </button>
+                    </form>
                 </div>
             )}
 
