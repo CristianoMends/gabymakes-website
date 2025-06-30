@@ -9,6 +9,8 @@ import AdminProductCreate from './pages/adminProductCreate'
 import AdminProductEdit from './pages/adminProductEdit'
 import ProductDetailPage from './pages/detailsProduct'
 import MessageContainer from './components/messageContainer'
+import Destaques from './pages/destaques'
+import Busca from './pages/busca'
 
 function App() {
     return (
@@ -18,6 +20,8 @@ function App() {
                 <Route path="login" element={<LoginPage />} />
                 <Route path="cadastro" element={<RegisterPage />} />
                 <Route path="sobre" element={<AboutPage />} />
+                <Route path="destaques" element={<Destaques />} />
+                <Route path="busca" element={<Busca />} />
                 <Route path="admin/products" element={<AdminProductList />} />
                 <Route path="admin/products/create" element={<AdminProductCreate />} />
                 <Route path="admin/products/edit/:id" element={<AdminProductEdit />} />

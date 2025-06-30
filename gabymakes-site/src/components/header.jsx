@@ -2,15 +2,17 @@ import { FiUser, FiSearch } from 'react-icons/fi';
 import { HiOutlineShoppingBag } from "react-icons/hi2";
 import logo from '../assets/logo-bg-transparent-2.png';
 import { useState, useRef, useEffect } from 'react';
-import LoginPopup from './login'; 
 import { useNavigate } from 'react-router-dom';
+import CartModal from './CartModal';
 
 
 export default function Header() {
-    const [showLogin, setShowLogin] = useState(false); 
     const [showSearchMobile, setShowSearchMobile] = useState(false);
-    const [userName, setUserName] = useState(''); 
-    const [isLoggedIn, setIsLoggedIn] = useState(false); 
+    const [userName, setUserName] = useState('');
+    const [searchQuery, setSearchQuery] = useState('');
+    const [cartItemCount, setCartItemCount] = useState(0);
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [showCartModal, setShowCartModal] = useState(false);
 
     const loginContainerRef = useRef(null);
     const searchContainerRef = useRef(null);
@@ -28,11 +30,11 @@ export default function Header() {
                     setUserName(currentUser.firstName || currentUser.email || 'Usuário');
                 } catch (error) {
                     console.error("Erro ao parsear dados do usuário no Header:", error);
-                    setUserName('Usuário'); 
+                    setUserName('Usuário');
                 }
             } else {
                 setIsLoggedIn(false);
-                setUserName(''); 
+                setUserName('');
             }
         };
 
@@ -43,17 +45,26 @@ export default function Header() {
         return () => {
             window.removeEventListener('storage', checkLoginStatus);
         };
-    }, []); 
+    }, []);
+
+    // Efeito para atualizar a contagem de itens do carrinho
+    useEffect(() => {
+        const updateCartCount = () => {
+            const cart = JSON.parse(sessionStorage.getItem('cart')) || [];
+            // Soma a quantidade de todos os itens no carrinho
+            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+            setCartItemCount(totalItems);
+        };
+
+        // Ouve o evento personalizado disparado ao adicionar um item
+        window.addEventListener('cartUpdated', updateCartCount);
+        updateCartCount(); // Chama uma vez para definir o estado inicial
+
+        return () => window.removeEventListener('cartUpdated', updateCartCount);
+    }, []);
 
     useEffect(() => {
         function handleClickOutside(event) {
-            if (
-                loginContainerRef.current &&
-                !loginContainerRef.current.contains(event.target)
-            ) {
-                setShowLogin(false);
-            }
-
             if (
                 searchContainerRef.current &&
                 !searchContainerRef.current.contains(event.target)
@@ -68,9 +79,19 @@ export default function Header() {
 
     const handleUserIconClick = () => {
         if (isLoggedIn) {
-            navigate('/dashboard'); 
+            navigate('/dashboard');
         } else {
             navigate('/login');
+        }
+    };
+
+    const handleSearchSubmit = (event) => {
+        event.preventDefault();
+        if (searchQuery.trim()) {
+            navigate(`/busca?q=${encodeURIComponent(searchQuery)}`);
+            if (showSearchMobile) {
+                setShowSearchMobile(false);
+            }
         }
     };
 
@@ -85,17 +106,32 @@ export default function Header() {
 
                 {/* Barra de busca - desktop */}
                 <div className="hidden md:flex flex-grow justify-center">
-                    <div className="flex items-center bg-pink-100 rounded-full shadow-inner px-4 h-10 w-96 max-w-full">
+                    <form
+                        onSubmit={handleSearchSubmit}
+                        className="flex items-center bg-pink-100 rounded-full shadow-inner px-4 h-10 w-96 max-w-full"
+                    >
                         <input
                             type="text"
                             placeholder="Busca"
                             className="flex-grow bg-transparent focus:outline-none text-gray-700 placeholder-gray-400 text-sm"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
                         />
-                        <FiSearch className="text-gray-700" size={18} />
-                    </div>
+                        <button type="submit" aria-label="Buscar">
+                            <FiSearch className="text-gray-700 cursor-pointer" size={18} />
+                        </button>
+                    </form>
                 </div>
 
                 <div className="flex items-center space-x-4 ml-auto">
+                    {/* Ícone de busca mobile */}
+                    <div className="md:hidden">
+                        <FiSearch
+                            size={22}
+                            className="text-gray-800 cursor-pointer"
+                            onClick={() => setShowSearchMobile(prev => !prev)}
+                        />
+                    </div>
 
                     <div className="relative" ref={loginContainerRef}>
                         <div
@@ -116,40 +152,40 @@ export default function Header() {
                     </div>
 
                     {/* Carrinho */}
-                    <div className="relative">
+                    <div className="relative cursor-pointer" onClick={() => setShowCartModal(true)}>
                         <HiOutlineShoppingBag size={30} className="text-gray-800" />
-                        <span className="absolute -top-2 -right-2 bg-white text-pink-500 text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow">
-                            1
-                        </span>
-                    </div>
-
-                    {/* Ícone de busca mobile */}
-                    <div className="md:hidden">
-                        <FiSearch
-                            size={22}
-                            className="text-gray-800"
-                            onClick={() => setShowSearchMobile(prev => !prev)}
-                        />
+                        {cartItemCount > 0 && (
+                            <span className="absolute -top-2 -right-2 bg-white text-pink-500 text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow">
+                                {cartItemCount}
+                            </span>
+                        )}
                     </div>
                 </div>
             </header>
 
             {/* Barra de busca MOBILE flutuante */}
             {showSearchMobile && (
-                <div
-                    ref={searchContainerRef}
-                    className="absolute top-full left-0 w-full bg-pink-100 px-4 py-2 z-40 shadow"
-                >
-                    <div className="flex items-center bg-white rounded-full px-4 h-10 shadow-inner">
+                <div ref={searchContainerRef} className="absolute top-full left-0 w-full bg-pink-100 px-4 py-2 z-40 shadow-lg">
+                    <form
+                        onSubmit={handleSearchSubmit}
+                        className="flex items-center bg-white rounded-full px-4 h-10 shadow-inner"
+                    >
                         <input
                             type="text"
                             placeholder="Buscar..."
                             className="flex-grow bg-transparent focus:outline-none text-gray-700 placeholder-gray-400 text-sm"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            autoFocus
                         />
-                        <FiSearch className="text-gray-700" size={18} />
-                    </div>
+                        <button type="submit" aria-label="Buscar">
+                            <FiSearch className="text-gray-700 cursor-pointer" size={18} />
+                        </button>
+                    </form>
                 </div>
             )}
+
+            {showCartModal && <CartModal onClose={() => setShowCartModal(false)} />}
         </div>
     );
 }
