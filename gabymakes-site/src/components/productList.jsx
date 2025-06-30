@@ -10,22 +10,18 @@ const ProductList = () => {
     const cloudUrl = "https://res.cloudinary.com/ddzfuyfh9/image/upload/";
 
     useEffect(() => {
-        // Chamamos a função que retorna a promessa
         getProducts()
             .then(data => {
-                // Quando a promessa é resolvida, atualizamos o estado com os produtos
                 setProducts(data);
             })
             .catch(err => {
-                // Se a promessa for rejeitada, tratamos o erro
                 console.error("Falha ao carregar produtos:", err);
                 setError('Não foi possível carregar os produtos. Tente novamente mais tarde.');
             })
             .finally(() => {
-                // Independentemente do resultado, paramos o indicador de carregamento
                 setLoading(false);
             });
-    }, []); // O array vazio garante que o efeito rode apenas uma vez na montagem do componente
+    }, []);
 
     if (loading) {
         return <LoadingCircles />;
