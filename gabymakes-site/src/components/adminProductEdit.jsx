@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 
-export default function AdminProductEdit() {
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+
+export default function AdminProductEdit({ onEdit, onCancel }) {
   const { id } = useParams();
-  const navigate = useNavigate();
   const [form, setForm] = useState({
     description: "",
     price: "",
@@ -14,9 +15,10 @@ export default function AdminProductEdit() {
   });
 
   useEffect(() => {
-    fetch(`http://localhost:3000/products/${id}`)
-      .then((res) => res.json())
-      .then((data) => {
+    if (!id) return;
+    fetch(`${API_URL}/products/${id}`)
+      .then((r) => r.json())
+      .then((data) =>
         setForm({
           description: data.description,
           price: String(data.price),
@@ -24,18 +26,19 @@ export default function AdminProductEdit() {
           brand: data.brand,
           category: data.category,
           imageUrl: data.imageUrl,
-        });
-      });
+        })
+      );
   }, [id]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm({ ...form, [name]: value });
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const response = await fetch(`http://localhost:3000/products/${id}`, {
+
+    const response = await fetch(`${API_URL}/products/${id}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -52,7 +55,7 @@ export default function AdminProductEdit() {
 
     if (response.ok) {
       alert("Produto atualizado com sucesso!");
-      navigate("/admin/products");
+      onEdit?.(); // chama callback se definido
     } else {
       alert("Erro ao atualizar produto.");
     }
@@ -61,8 +64,10 @@ export default function AdminProductEdit() {
   return (
     <div className="bg-[#fafafa] min-h-screen p-6">
       <h2 className="text-xl font-bold mb-4">Editar Produto</h2>
-      <form onSubmit={handleSubmit} className="border rounded p-6 bg-white max-w-5xl mx-auto">
-        {/* Repita os campos do formulário de criação, mas usando value={form.campo} */}
+      <form
+        onSubmit={handleSubmit}
+        className="border rounded p-6 bg-white max-w-5xl mx-auto"
+      >
         <div className="flex flex-col gap-4">
           <input
             type="text"
@@ -113,12 +118,25 @@ export default function AdminProductEdit() {
             placeholder="URL da imagem"
             className="border rounded px-3 py-2 w-full"
           />
-          <button
-            type="submit"
-            className="bg-[#FFA5BD] hover:bg-[#ff94b3] text-white font-semibold px-6 py-2 rounded shadow w-fit"
-          >
-            Salvar alterações
-          </button>
+
+          <div className="flex gap-3">
+            <button
+              type="submit"
+              className="bg-[#FFA5BD] hover:bg-[#ff94b3] text-white font-semibold px-6 py-2 rounded shadow"
+            >
+              Salvar alterações
+            </button>
+
+            {onCancel && (
+              <button
+                type="button"
+                onClick={onCancel}
+                className="px-6 py-2 border rounded shadow"
+              >
+                Cancelar
+              </button>
+            )}
+          </div>
         </div>
       </form>
     </div>

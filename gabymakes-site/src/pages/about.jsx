@@ -1,4 +1,3 @@
-// pages/sobre.tsx
 import React, { useEffect } from 'react';
 import HeaderVariant from '../components/header-variant';
 import Breadcrumb from '../components/breadcrumb';

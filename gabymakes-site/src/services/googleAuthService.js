@@ -1,14 +1,12 @@
-// src/services/googleAuthService.js
 import { useGoogleLogin } from '@react-oauth/google';
 
 export const useGoogleAuthService = (onSuccessCallback, onErrorCallback) => {
     const signInWithGoogle = useGoogleLogin({
         onSuccess: (credentialResponse) => {
             console.log("Google Login Successful (credentialResponse):", credentialResponse);
-            // credentialResponse agora terá 'code' e não 'credential'
             if (credentialResponse && typeof credentialResponse.code === 'string') {
                 if (onSuccessCallback) {
-                    onSuccessCallback(credentialResponse); // Passa o objeto completo com 'code'
+                    onSuccessCallback(credentialResponse); 
                 }
             } else {
                 console.error("Google Login Success: No 'code' found in response.", credentialResponse);
@@ -21,8 +19,8 @@ export const useGoogleAuthService = (onSuccessCallback, onErrorCallback) => {
                 onErrorCallback(errorResponse);
             }
         },
-        // Mude para 'auth-code'
-        flow: 'auth-code', // <--- MUDANÇA AQUI
+
+        flow: 'auth-code', 
     });
 
     return signInWithGoogle;

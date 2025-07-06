@@ -12,8 +12,6 @@ export default function Destaques() {
                     <Banner />
                 </div>
 
-                <h2 className="text-2xl font-bold text-center p-8">Seções em Destaque</h2>
-
                 <div className="flex flex-wrap justify-center gap-6 p-6">
                     <div className="p-10 rounded-lg shadow-md bg-pink-50 hover:shadow-xl transition-shadow">
                         <h3 className="text-lg font-semibold text-gray-700">Presentes de dia das Mães</h3>

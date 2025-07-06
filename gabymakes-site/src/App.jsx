@@ -4,13 +4,15 @@ import PageNotFound from './pages/pageNotFound'
 import LoginPage from './pages/loginPage'
 import RegisterPage from './pages/register'
 import AboutPage from './pages/about'
-import AdminProductList from './pages/adminProductList'
-import AdminProductCreate from './pages/adminProductCreate'
-import AdminProductEdit from './pages/adminProductEdit'
 import ProductDetailPage from './pages/detailsProduct'
 import MessageContainer from './components/messageContainer'
 import Destaques from './pages/destaques'
 import Busca from './pages/busca'
+import UserPage from './pages/userPage';
+import AdminPage from './pages/adminPage'
+import AdminRoute from './components/adminRoute';
+import CheckoutPage from './pages/checkoutPage'
+
 
 function App() {
     return (
@@ -22,9 +24,18 @@ function App() {
                 <Route path="sobre" element={<AboutPage />} />
                 <Route path="destaques" element={<Destaques />} />
                 <Route path="busca" element={<Busca />} />
-                <Route path="admin/products" element={<AdminProductList />} />
-                <Route path="admin/products/create" element={<AdminProductCreate />} />
-                <Route path="admin/products/edit/:id" element={<AdminProductEdit />} />
+                <Route path="user/:id" element={<UserPage />} />
+
+                <Route
+                    path="admin"
+                    element={
+                        <AdminRoute>
+                            <AdminPage />
+                        </AdminRoute>
+                    }
+                />
+
+                <Route path='/checkout/:userId' element={<CheckoutPage />} />
                 <Route path="details/:id" element={<ProductDetailPage />} />
                 <Route path="*" element={<PageNotFound />} />
             </Routes>

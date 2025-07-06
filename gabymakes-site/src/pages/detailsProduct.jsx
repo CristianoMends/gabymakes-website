@@ -1,46 +1,131 @@
-import { useState } from 'react'
-import Header from '../components/header'
-import Footer from '../components/footer'
+import { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import Header from '../components/header';
+import Footer from '../components/footer';
+import Breadcrumb from '../components/breadcrumb';
+import LoadingCircles from '../components/loading';
+import Message from '../components/message';
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 export default function ProductDetailPage() {
-  const [quantity, setQuantity] = useState(1)
+  const { id } = useParams();
 
-  const product = {
-    name: 'ESSENTIELLE PARIS',
-    description: `Luminoso Rosado Eau De Parfum – 50ml
-Fragrância Floral Amadeirada com notas de Rosa Damascena, Jasmim Egípcio e Sândalo Australiano com base de Patchouli.`,
-    price: 189.9,
-    image: '/path/to/image.jpg'
-  }
+  /* ---------------- estado ---------------- */
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [quantity, setQuantity] = useState(1);
+  const [error, setError] = useState(null);
+  const [message, setMessage] = useState(null);
 
-  const relatedProducts = Array(4).fill(product)
+  /* dados de login */
+  const [userId, setUserId] = useState(null);
+
+  /* ------------ fetch produto ------------ */
+  useEffect(() => {
+    async function fetchProduct() {
+      try {
+        setLoading(true);
+        const res = await fetch(`${API_BASE_URL}/products/${id}`);
+        if (!res.ok) throw new Error('Produto não encontrado');
+        const data = await res.json();
+        // converte preço string → número
+        if (typeof data.price === 'string')
+          data.price = parseFloat(data.price.replace(',', '.'));
+        setProduct(data);
+      } catch (err) {
+        setError(err.message || 'Erro ao carregar produto');
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchProduct();
+  }, [id]);
+
+  /* ------------ checa login ------------ */
+  useEffect(() => {
+    const currentUserString = localStorage.getItem('currentUser');
+    const accessToken = localStorage.getItem('accessToken');
+    if (currentUserString && accessToken) {
+      try {
+        const currentUser = JSON.parse(currentUserString);
+        setUserId(currentUser.id || null);
+      } catch {
+        setUserId(null);
+      }
+    } else {
+      setUserId(null);
+    }
+  }, []);
+
+  /* ------------ adicionar à sacola ------------ */
+  const handleAddToCart = async () => {
+    if (!product) return;
+    if (userId) {
+      // usuário logado → API
+      try {
+        const res = await fetch(`${API_BASE_URL}/cart-item/add`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId,
+            productId: product.id,
+            quantity,
+          }),
+        });
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.message || 'Falha ao adicionar');
+        }
+        setMessage({ type: 'success', text: 'Produto adicionado à sacola!' });
+        window.dispatchEvent(new Event('cartUpdated'));
+      } catch (err) {
+        setMessage({ type: 'error', text: err.message });
+      }
+    } else {
+      // visitante → localStorage
+      const cartString = localStorage.getItem('cart');
+      const cart = cartString ? JSON.parse(cartString) : [];
+      const item = cart.find(i => i.id === product.id);
+      if (item) item.quantity += quantity;
+      else
+        cart.push({
+          id: product.id,
+          name: product.name,
+          price: product.price,
+          imageUrl: product.imageUrl,
+          quantity,
+        });
+      localStorage.setItem('cart', JSON.stringify(cart));
+      window.dispatchEvent(new Event('cartUpdated'));
+      setMessage({ type: 'success', text: 'Produto adicionado à sacola!' });
+    }
+  };
+
+  /* ------------ UI ------------ */
+  if (loading) return <LoadingCircles />;
+  if (error) return <p className="text-red-600">{error}</p>;
+  if (!product) return null;
 
   return (
     <div className="bg-white text-gray-800">
-      {/* Header */}
-      <Header></Header>
-
-      {/* Produto */}
+      <Header />
       <main className="max-w-6xl mx-auto px-4 py-10">
-        <p className="text-sm text-gray-500 mb-4">
-          Home &gt; Perfumes &gt; {product.name}
-        </p>
+        <Breadcrumb />
         <div className="grid md:grid-cols-2 gap-10">
           <img
-            src={product.image}
+            src={product.imageUrl || '/default-image.jpg'}
             alt={product.name}
             className="w-full border-2 border-blue-400 rounded"
           />
           <div>
             <h1 className="text-2xl font-bold mb-2">{product.name}</h1>
-            <p className="text-sm whitespace-pre-line mb-4">
-              {product.description}
-            </p>
+            <p className="text-sm whitespace-pre-line mb-4">{product.description}</p>
             <p className="text-lg font-bold mb-2">
-              R$ {product.price.toFixed(2)}
+              R$ {product.price.toFixed(2).replace('.', ',')}
             </p>
             <p className="text-xs text-gray-500 mb-4">
-              ou 3x de R$ {(product.price / 3).toFixed(2)} sem juros
+              ou 3x de R$ {(product.price / 3).toFixed(2).replace('.', ',')} sem juros
             </p>
 
             <div className="mb-6">
@@ -48,7 +133,7 @@ Fragrância Floral Amadeirada com notas de Rosa Damascena, Jasmim Egípcio e Sâ
               <div className="flex items-center gap-2 w-fit border rounded px-2 py-1">
                 <button
                   type="button"
-                  onClick={() => setQuantity(prev => Math.max(1, prev - 1))}
+                  onClick={() => setQuantity(q => Math.max(1, q - 1))}
                   className="text-xl font-bold px-2 text-pink-500 hover:text-pink-700"
                 >
                   −
@@ -56,7 +141,7 @@ Fragrância Floral Amadeirada com notas de Rosa Damascena, Jasmim Egípcio e Sâ
                 <span className="w-8 text-center">{quantity}</span>
                 <button
                   type="button"
-                  onClick={() => setQuantity(prev => prev + 1)}
+                  onClick={() => setQuantity(q => q + 1)}
                   className="text-xl font-bold px-2 text-pink-500 hover:text-pink-700"
                 >
                   +
@@ -65,40 +150,28 @@ Fragrância Floral Amadeirada com notas de Rosa Damascena, Jasmim Egípcio e Sâ
             </div>
 
             <div className="flex gap-4">
-              <button className="bg-[#FFA5BD] text-white px-6 py-2 rounded shadow cursor-pointer">
+              <button className="bg-[#FFA5BD] cursor-pointer text-white px-6 py-2 rounded shadow">
                 comprar agora
               </button>
-              <button className="bg-[#FFA5BD] text-white px-6 py-2 rounded shadow cursor-pointer">
+              <button
+                onClick={handleAddToCart}
+                className="bg-[#FFA5BD] cursor-pointer text-white px-6 py-2 rounded shadow"
+              >
                 adicionar à sacola
               </button>
             </div>
           </div>
         </div>
-
-        {/* Produtos relacionados */}
-        <section className="mt-16">
-          <h2 className="text-center font-semibold mb-6">
-            QUEM VIU ESTE PRODUTO, TAMBÉM SE INTERESSA POR
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {relatedProducts.map((item, idx) => (
-              <div key={idx} className="text-center">
-                <img
-                  src={item.image}
-                  alt={item.name}
-                  className="mx-auto w-28 h-28 object-cover"
-                />
-                <h3 className="font-semibold text-sm mt-2">{item.name}</h3>
-                <p className="text-xs">{item.description.split('\n')[0]}</p>
-                <p className="font-bold mt-1">R$ {item.price.toFixed(2)}</p>
-              </div>
-            ))}
-          </div>
-        </section>
       </main>
+      <Footer />
 
-      {/* Rodapé */}
-      <Footer></Footer>
+      {message && (
+        <Message
+          type={message.type}
+          message={message.text}
+          onClose={() => setMessage(null)}
+        />
+      )}
     </div>
-  )
+  );
 }

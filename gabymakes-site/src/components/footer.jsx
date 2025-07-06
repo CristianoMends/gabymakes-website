@@ -24,7 +24,7 @@ export default function Footer() {
                         <li>Tel/WhatsApp: (88) 99459-5237</li>
                         <li>Email: <a href="mailto:bysampaio20@gmail.com" className="hover:underline">bysampaio20@gmail.com</a></li>
                         <li>
-                            <Link to="https://maps.app.goo.gl/YOUR_GOOGLE_MAPS_LINK" target='_blank' className="text-blue-500 hover:underline cursor-pointer">
+                            <Link to="https://maps.app.goo.gl/ugX24tGk84tfFTH97" target='_blank' className="text-blue-500 hover:underline cursor-pointer">
                                 Rua Valdevino Cabral, 212, Centro, Ibaretama,CE
                             </Link>
                         </li>
