@@ -50,14 +50,7 @@ export default function RegisterPage() {
 
             const result = await response.json();
             if (response.ok) {
-                
-
-
-                
-
-
-
-                navigate('/dashboard');
+                navigate('/');
             } else {
                 
             }

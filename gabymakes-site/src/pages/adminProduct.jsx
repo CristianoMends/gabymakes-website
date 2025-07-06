@@ -1,5 +1,5 @@
 import { useState } from "react";
-import AdminProductList from "../components/AdminProductList";
+import AdminProductList from "../components/adminProductList";
 import AdminProductCreate from "../components/adminProductCreate";
 import AdminProductEdit from "../components/adminProductEdit";
 import PageNotFound from "./pageNotFound";
