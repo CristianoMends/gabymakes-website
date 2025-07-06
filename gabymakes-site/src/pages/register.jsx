@@ -9,7 +9,7 @@ import { useGoogleAuthService } from '../services/googleAuthService';
 
 
 
-const API_BASE_URL = 'http://localhost:3000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 export default function RegisterPage() {
     const [formData, setFormData] = useState({
@@ -50,14 +50,7 @@ export default function RegisterPage() {
 
             const result = await response.json();
             if (response.ok) {
-                
-
-
-                
-
-
-
-                navigate('/dashboard');
+                navigate('/');
             } else {
                 
             }

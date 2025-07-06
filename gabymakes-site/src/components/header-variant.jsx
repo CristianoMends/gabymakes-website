@@ -1,8 +1,6 @@
-import { FiUser, FiSearch } from 'react-icons/fi';
-import { HiOutlineShoppingBag } from "react-icons/hi2";
+import { FiSearch } from 'react-icons/fi';
 import logo from '../assets/logo-bg-transparent-2.png';
 import { useState, useRef, useEffect } from 'react';
-import LoginPopup from './login';
 import { useNavigate } from 'react-router-dom';
 
 

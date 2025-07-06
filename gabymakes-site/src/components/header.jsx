@@ -1,23 +1,26 @@
 import { FiUser, FiSearch } from 'react-icons/fi';
-import { HiOutlineShoppingBag } from "react-icons/hi2";
+import { HiOutlineShoppingBag } from 'react-icons/hi2';
 import logo from '../assets/logo-bg-transparent-2.png';
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CartModal from './CartModal';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 export default function Header() {
     const [showSearchMobile, setShowSearchMobile] = useState(false);
     const [userName, setUserName] = useState('');
+    const [userId, setUserId] = useState(null);
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [cartItemCount, setCartItemCount] = useState(0);
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [showCartModal, setShowCartModal] = useState(false);
 
     const loginContainerRef = useRef(null);
     const searchContainerRef = useRef(null);
     const navigate = useNavigate();
 
+    // Checa login
     useEffect(() => {
         const checkLoginStatus = () => {
             const accessToken = localStorage.getItem('accessToken');
@@ -28,41 +31,53 @@ export default function Header() {
                 try {
                     const currentUser = JSON.parse(currentUserString);
                     setUserName(currentUser.firstName || currentUser.email || 'Usuário');
+                    setUserId(currentUser.id || null);
                 } catch (error) {
-                    console.error("Erro ao parsear dados do usuário no Header:", error);
+                    console.error('Erro ao parsear dados do usuário:', error);
                     setUserName('Usuário');
+                    setUserId(null);
                 }
             } else {
                 setIsLoggedIn(false);
                 setUserName('');
+                setUserId(null);
             }
         };
 
         checkLoginStatus();
-
         window.addEventListener('storage', checkLoginStatus);
-
-        return () => {
-            window.removeEventListener('storage', checkLoginStatus);
-        };
+        return () => window.removeEventListener('storage', checkLoginStatus);
     }, []);
 
-    // Efeito para atualizar a contagem de itens do carrinho
     useEffect(() => {
-        const updateCartCount = () => {
-            const cart = JSON.parse(sessionStorage.getItem('cart')) || [];
-            // Soma a quantidade de todos os itens no carrinho
-            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-            setCartItemCount(totalItems);
-        };
+        async function updateCartCount() {
+            if (userId) {
+                try {
+                    const res = await fetch(`${API_BASE_URL}/cart-item/${userId}`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        const total = data.length;
+                        setCartItemCount(total);
+                    } else {
+                        setCartItemCount(0);
+                    }
+                } catch (err) {
+                    console.error('Erro ao buscar carrinho do usuário:', err);
+                    setCartItemCount(0);
+                }
+            } else {
+                const cart = JSON.parse(localStorage.getItem('cart')) || [];
+                const totalItems = cart.length;
+                setCartItemCount(totalItems);
+            }
+        }
 
-        // Ouve o evento personalizado disparado ao adicionar um item
+        updateCartCount();
         window.addEventListener('cartUpdated', updateCartCount);
-        updateCartCount(); // Chama uma vez para definir o estado inicial
-
         return () => window.removeEventListener('cartUpdated', updateCartCount);
-    }, []);
+    }, [userId]);
 
+    // Fecha barra de busca mobile ao clicar fora
     useEffect(() => {
         function handleClickOutside(event) {
             if (
@@ -72,16 +87,36 @@ export default function Header() {
                 setShowSearchMobile(false);
             }
         }
-
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
     const handleUserIconClick = () => {
-        if (isLoggedIn) {
-            navigate('/dashboard');
-        } else {
+        if (!isLoggedIn) {
             navigate('/login');
+            return;
+        }
+
+        try {
+            const userString = localStorage.getItem('currentUser');
+            const user = userString ? JSON.parse(userString) : null;
+
+            const role = (user?.role || user?.roles?.[0] || '').toLowerCase();
+            const id = user?.id;
+
+            if (!id) {
+                navigate('/home');
+                return;
+            }
+
+            if (role === 'admin') {
+                navigate('/admin');
+            } else {
+                navigate(`/user/${id}`);
+            }
+        } catch (err) {
+            console.error('Erro ao redirecionar:', err);
+            navigate('/home');
         }
     };
 
@@ -89,22 +124,18 @@ export default function Header() {
         event.preventDefault();
         if (searchQuery.trim()) {
             navigate(`/busca?q=${encodeURIComponent(searchQuery)}`);
-            if (showSearchMobile) {
-                setShowSearchMobile(false);
-            }
+            setShowSearchMobile(false);
         }
     };
 
     return (
         <div className="relative">
             <header className="bg-pink-300 px-8 py-6 flex items-center shadow-md">
-
-                {/* Logo - alinhado à esquerda */}
                 <div className="flex-shrink-0 cursor-pointer" onClick={() => navigate('/')}>
                     <img src={logo} alt="Logo Gaby" className="h-10" />
                 </div>
 
-                {/* Barra de busca - desktop */}
+                {/* Busca - Desktop */}
                 <div className="hidden md:flex flex-grow justify-center">
                     <form
                         onSubmit={handleSearchSubmit}
@@ -123,8 +154,9 @@ export default function Header() {
                     </form>
                 </div>
 
+                {/* Ações */}
                 <div className="flex items-center space-x-4 ml-auto">
-                    {/* Ícone de busca mobile */}
+                    {/* Busca mobile */}
                     <div className="md:hidden">
                         <FiSearch
                             size={22}
@@ -133,20 +165,17 @@ export default function Header() {
                         />
                     </div>
 
+                    {/* Usuário */}
                     <div className="relative" ref={loginContainerRef}>
-                        <div
-                            className="flex items-center space-x-2 cursor-pointer"
-                            onClick={handleUserIconClick}>
+                        <div className="flex items-center space-x-2 cursor-pointer" onClick={handleUserIconClick}>
                             <FiUser size={30} className="text-gray-800" />
                             <div className="text-sm leading-tight hidden md:block">
-
                                 <p className="font-semibold text-black">
                                     Olá, {isLoggedIn ? userName : 'visitante'}
                                 </p>
                                 <p className="text-gray-800">
                                     {isLoggedIn ? 'Minha conta' : 'Entrar na minha conta'}
                                 </p>
-                                {/* ----------------------------------------------------------------- */}
                             </div>
                         </div>
                     </div>
@@ -163,7 +192,7 @@ export default function Header() {
                 </div>
             </header>
 
-            {/* Barra de busca MOBILE flutuante */}
+            {/* Busca mobile flutuante */}
             {showSearchMobile && (
                 <div ref={searchContainerRef} className="absolute top-full left-0 w-full bg-pink-100 px-4 py-2 z-40 shadow-lg">
                     <form
@@ -185,6 +214,7 @@ export default function Header() {
                 </div>
             )}
 
+            {/* Modal do carrinho */}
             {showCartModal && <CartModal onClose={() => setShowCartModal(false)} />}
         </div>
     );

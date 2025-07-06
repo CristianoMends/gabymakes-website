@@ -1,55 +1,108 @@
+import { useNavigate } from "react-router-dom";
 import cardPlaceholder from '../assets/card-content.png';
 import { HiOutlineShoppingBag } from "react-icons/hi2";
+import Message from "./message";
+import { useState } from "react";
 
-export default function ProductCard({ product, cloudUrl }) {
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
+export default function ProductCard({ product, cloudUrl, userId }) {
+    const navigate = useNavigate();
     const { id, brand, description, price, imageUrl } = product;
-    const imageToDisplay = imageUrl ? `${cloudUrl}${imageUrl}` : cardPlaceholder;
+    const imageToDisplay = imageUrl ? imageUrl : cardPlaceholder;
+    const [message, setMessage] = useState(null);
 
     const formattedPrice = new Intl.NumberFormat('pt-BR', {
         style: 'currency',
         currency: 'BRL',
     }).format(price || 0);
 
-    const handleAddToCart = (e) => {
+    const handleAddToCart = async (e) => {
         e.stopPropagation();
-        const cartString = sessionStorage.getItem('cart');
-        let cart = cartString ? JSON.parse(cartString) : [];
 
-        const productInCart = cart.find(item => item.id === id);
-
-        if (productInCart) {
-            productInCart.quantity += 1;
+        if (userId) {
+            // Usuário logado, envia para API
+            try {
+                const res = await fetch(`${API_BASE_URL}/cart-item/add`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId: userId,
+                        productId: id,
+                        quantity: 1,
+                    }),
+                });
+                if (res.ok) {
+                    setMessage({ type: "success", text: "Produto adicionado ao carrinho!" });
+                    // Opcional: disparar evento global para atualizar carrinho na aplicação
+                    window.dispatchEvent(new Event('cartUpdated'));
+                } else {
+                    const err = await res.json();
+                    setMessage({ type: "error", text: err.message || "Erro ao adicionar ao carrinho." });
+                }
+            } catch (error) {
+                setMessage({ type: "error", text: "Erro na comunicação com o servidor." });
+                console.error(error);
+            }
         } else {
-            const newCartItem = {
-                id,
-                name: brand,
-                price,
-                imageUrl: imageToDisplay,
-                quantity: 1
-            };
-            cart.push(newCartItem);
+            // Usuário não logado, salva no localStorage
+            const cartString = localStorage.getItem('cart');
+            let cart = cartString ? JSON.parse(cartString) : [];
+
+            const productInCart = cart.find(item => item.id === id);
+
+            if (productInCart) {
+                productInCart.quantity += 1;
+            } else {
+                const newCartItem = {
+                    id,
+                    name: brand,
+                    price,
+                    imageUrl: imageToDisplay,
+                    quantity: 1
+                };
+                cart.push(newCartItem);
+            }
+            localStorage.setItem('cart', JSON.stringify(cart));
+            window.dispatchEvent(new Event('cartUpdated'));
+            setMessage({ type: "success", text: "Produto adicionado ao carrinho!" });
         }
-        sessionStorage.setItem('cart', JSON.stringify(cart));
-        window.dispatchEvent(new Event('cartUpdated'));
+    };
+
+    const handleCardClick = () => {
+        navigate(`/details/${id}`);
     };
 
     return (
-        <div className="relative group w-[300px] h-auto flex flex-col items-center border pt-4 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 bg-white cursor-pointer">
-            <button
-                onClick={handleAddToCart}
-                className="absolute top-2 left-2 bg-pink-400 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 hover:bg-pink-500"
-                aria-label="Adicionar ao carrinho"
+        <>
+            <div
+                onClick={handleCardClick}
+                className="relative group w-[300px] h-auto flex flex-col items-center border pt-4 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 bg-white cursor-pointer"
             >
-                <HiOutlineShoppingBag size={24} />
-            </button>
-            <div className="w-[260px] h-[190px] overflow-hidden rounded-md">
-                <img src={imageToDisplay} alt={brand} className="w-full h-full object-contain" />
+                {/*}
+                <button
+                    onClick={handleAddToCart}
+                    className="absolute cursor-pointer top-2 left-2 bg-pink-400 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 hover:bg-pink-500"
+                    aria-label="Adicionar ao carrinho"
+                >
+                    <HiOutlineShoppingBag size={24} />
+                </button>*/}
+                <div className="w-[260px] h-[190px] overflow-hidden rounded-md">
+                    <img src={imageToDisplay} alt={brand} className="w-full h-full object-contain" />
+                </div>
+                <div className="p-4 flex flex-col gap-2 w-full">
+                    <h3 className="text-xl font-semibold truncate h-8" title={brand}>{brand}</h3>
+                    <p className="text-sm text-gray-600 h-20 overflow-hidden text-ellipsis">{description}</p>
+                    <h3 className="text-xl font-semibold mt-2">{formattedPrice}</h3>
+                </div>
             </div>
-            <div className="p-4 flex flex-col gap-2 w-full">
-                <h3 className="text-xl font-semibold truncate h-8" title={brand}>{brand}</h3>
-                <p className="text-sm text-gray-600 h-20 overflow-hidden text-ellipsis">{description}</p>
-                <h3 className="text-xl font-semibold mt-2">{formattedPrice}</h3>
-            </div>
-        </div>
-    )
+            {message && (
+                <Message
+                    type={message.type}
+                    message={message.text}
+                    onClose={() => setMessage(null)}
+                />
+            )}
+        </>
+    );
 }

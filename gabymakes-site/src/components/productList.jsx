@@ -7,7 +7,7 @@ const ProductList = () => {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const cloudUrl = "https://res.cloudinary.com/ddzfuyfh9/image/upload/";
+    const userId = JSON.parse(localStorage.getItem('currentUser'))?.id || null;
 
     useEffect(() => {
         getProducts()
@@ -36,11 +36,7 @@ const ProductList = () => {
             <h1 className="text-3xl font-bold mb-8 text-center text-gray-800">Nossos Produtos</h1>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 justify-items-center">
                 {products.map(product => (
-                    <ProductCard
-                        key={product.id}
-                        product={product}
-                        cloudUrl={cloudUrl}
-                    />
+                    <ProductCard key={product.id} product={product} userId={userId} />
                 ))}
             </div>
         </div>

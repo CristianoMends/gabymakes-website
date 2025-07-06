@@ -6,7 +6,7 @@ import { useGoogleAuthService } from '../services/googleAuthService';
 import { showAppMessage } from './messageContainer';
 import LoadingCircles from './loading'
 
-const API_BASE_URL = 'http://localhost:3000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 const LoginPopup = () => {
     const [isLoading, setIsLoading] = useState(false);

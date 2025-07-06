@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { FaEdit } from "react-icons/fa";
-import { Link } from "react-router-dom";
 
-export default function AdminProductList() {
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+
+export default function AdminProductList({ onEdit }) {
   const [products, setProducts] = useState([]);
 
   useEffect(() => {
-    fetch("http://localhost:3000/products")
+    fetch(API_URL + "/products")
       .then((response) => response.json())
       .then((data) => setProducts(data))
       .catch(() => setProducts([]));
@@ -14,18 +15,7 @@ export default function AdminProductList() {
 
   return (
     <div className="bg-[#fafafa] min-h-screen p-6">
-      {/* Caminho de navegação */}
-      <p className="text-gray-600 mb-4"> <a href="/admin/products">Home </a>&gt; <a href="/admin/products"> administrador</a> &gt; <a href="/admin/products"> produtos </a></p>
 
-      {/* Botão Adicionar Produto */}
-      <div className="mb-4">
-        <Link
-          to="/admin/products/create"
-          className="bg-[#FFA5BD] hover:bg-[#ff94b3] text-blcak font-semibold px-5 py-2 rounded shadow"
-        >
-          Adicionar produto
-        </Link>
-      </div>
 
       {/* Tabela */}
       <div className="bg-white rounded-lg shadow p-4 overflow-x-auto">
@@ -51,11 +41,10 @@ export default function AdminProductList() {
                 <td className="px-3">{product.description}</td>
                 <td className="px-3">{product.quantity}</td>
                 <td className="px-3">
-                  <Link to={`/admin/products/edit/${product.id}`}>
-                    <button className="text-gray-700 hover:cursor-pointer hover:text-pink-500">
-                      <FaEdit />
-                    </button>
-                  </Link>
+                  <button className="text-gray-700 hover:cursor-pointer hover:text-pink-500"
+                    onClick={() => onEdit(product.id)}>
+                    <FaEdit />
+                  </button>
                 </td>
               </tr>
             ))}
