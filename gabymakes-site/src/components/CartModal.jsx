@@ -149,7 +149,7 @@ export default function CartModal({ onClose }) {
 
                                         <div className="flex-grow">
                                             <p className="font-semibold">
-                                                {(product.description || product.name).substring(0, 30)}…
+                                                {product.description && product.description.substring(0, 30)}…
                                             </p>
                                             <p className="text-sm text-gray-600">{formatCurrency(product.price)}</p>
                                         </div>
