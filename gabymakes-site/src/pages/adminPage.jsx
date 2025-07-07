@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FiBox, FiStar, FiImage, FiLogOut } from "react-icons/fi"; // ⬅️ Importa ícone de sair
+import { FiBox, FiStar, FiImage, FiLogOut, FiHome } from "react-icons/fi"; // ⬅️ Importa ícone de sair
 import logo from "../assets/logo-bg-transparent-1.png";
 import AdminProduct from "./adminProduct";
 
@@ -117,16 +117,25 @@ export default function AdminPage() {
                     </nav>
                 </div>
 
-                {/* Botão de sair */}
-                <div className="p-2">
+                {/* Botões de Home e Sair */}
+                <div className="p-2 flex gap-2">
+                    <button
+                        onClick={() => (window.location.href = "/")}
+                        className="flex cursor-pointer items-center justify-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded w-full"
+                    >
+                        <FiHome className="h-4 w-4" />
+                        Home
+                    </button>
+
                     <button
                         onClick={handleLogout}
-                        className="flex items-center cursor-pointer gap-2 w-full px-3 py-2 text-left text-gray-700 hover:bg-gray-100 rounded"
+                        className="flex items-center cursor-pointer justify-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded w-full"
                     >
                         <FiLogOut className="h-4 w-4" />
                         Sair
                     </button>
                 </div>
+
             </aside>
 
             <main className="flex-1 p-6">{renderPage()}</main>

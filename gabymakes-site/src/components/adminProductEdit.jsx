@@ -62,7 +62,7 @@ export default function AdminProductEdit({ onEdit, onCancel }) {
   };
 
   return (
-    <div className="bg-[#fafafa] min-h-screen p-6">
+    <div className="bg-[#fafafa] p-6">
       <h2 className="text-xl font-bold mb-4">Editar Produto</h2>
       <form
         onSubmit={handleSubmit}

@@ -90,11 +90,14 @@ export default function ProductCard({ product, cloudUrl, userId }) {
                 <div className="w-[260px] h-[190px] overflow-hidden rounded-md">
                     <img src={imageToDisplay} alt={brand} className="w-full h-full object-contain" />
                 </div>
-                <div className="p-4 flex flex-col gap-2 w-full">
-                    <h3 className="text-xl font-semibold truncate h-8" title={brand}>{brand}</h3>
-                    <p className="text-sm text-gray-600 h-20 overflow-hidden text-ellipsis">{description}</p>
-                    <h3 className="text-xl font-semibold mt-2">{formattedPrice}</h3>
+                <div className="p-4 flex flex-col gap-2 w-full items-center text-center">
+                    <h3 className="text-lg font-medium text-gray-800 truncate max-w-full" title={brand}>{brand}</h3>
+                    <p className="text-sm text-gray-600 h-16 overflow-hidden text-ellipsis line-clamp-3">{description}</p>
+                    <span className="text-3xl text-gray-800 font-bold mt-2 tracking-tight font-poppins">
+                        {formattedPrice}
+                    </span>
                 </div>
+
             </div>
             {message && (
                 <Message

@@ -18,7 +18,7 @@ export default function AdminProduct({ page = "list" }) {
                     <div className="mb-4">
                         <button
                             onClick={() => setCurrentPage("create")}
-                            className="bg-pink-300 hover:bg-[#ff94b3] text-black font-semibold px-4 py-2 rounded shadow"
+                            className="bg-pink-300 cursor-pointer hover:bg-[#ff94b3] text-black font-semibold px-4 py-2 rounded shadow"
                         >
                             Adicionar produto
                         </button>

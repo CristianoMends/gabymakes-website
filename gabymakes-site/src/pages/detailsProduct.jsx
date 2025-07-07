@@ -116,10 +116,10 @@ export default function ProductDetailPage() {
           <img
             src={product.imageUrl || '/default-image.jpg'}
             alt={product.name}
-            className="w-full border-2 border-blue-400 rounded"
+            className="w-full rounded"
           />
           <div>
-            <h1 className="text-2xl font-bold mb-2">{product.name}</h1>
+            <h1 className="text-2xl font-bold mb-2">{product.brand}</h1>
             <p className="text-sm whitespace-pre-line mb-4">{product.description}</p>
             <p className="text-lg font-bold mb-2">
               R$ {product.price.toFixed(2).replace('.', ',')}
@@ -134,7 +134,7 @@ export default function ProductDetailPage() {
                 <button
                   type="button"
                   onClick={() => setQuantity(q => Math.max(1, q - 1))}
-                  className="text-xl font-bold px-2 text-pink-500 hover:text-pink-700"
+                  className="text-xl cursor-pointer font-bold px-2 text-pink-500 hover:text-pink-700"
                 >
                   −
                 </button>
@@ -142,7 +142,7 @@ export default function ProductDetailPage() {
                 <button
                   type="button"
                   onClick={() => setQuantity(q => q + 1)}
-                  className="text-xl font-bold px-2 text-pink-500 hover:text-pink-700"
+                  className="text-xl font-bold cursor-pointer px-2 text-pink-500 hover:text-pink-700"
                 >
                   +
                 </button>
@@ -150,12 +150,12 @@ export default function ProductDetailPage() {
             </div>
 
             <div className="flex gap-4">
-              <button className="bg-[#FFA5BD] cursor-pointer text-white px-6 py-2 rounded shadow">
+              <button className="bg-[#FFA5BD] cursor-pointer text-white px-6 py-2 rounded shadow hover:bg-[#ff8cae] transition-colors duration-300">
                 comprar agora
               </button>
               <button
                 onClick={handleAddToCart}
-                className="bg-[#FFA5BD] cursor-pointer text-white px-6 py-2 rounded shadow"
+                className="bg-[#FFA5BD] cursor-pointer text-white px-6 py-2 rounded shadow hover:bg-[#ff8cae] transition-colors duration-300"
               >
                 adicionar à sacola
               </button>
