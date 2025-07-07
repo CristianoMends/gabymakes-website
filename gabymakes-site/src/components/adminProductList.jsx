@@ -14,7 +14,7 @@ export default function AdminProductList({ onEdit }) {
   }, []);
 
   return (
-    <div className="bg-[#fafafa] min-h-screen p-6">
+    <div className="bg-[#fafafa] p-6">
 
 
       {/* Tabela */}
