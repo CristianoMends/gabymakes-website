@@ -8,23 +8,33 @@ const formatCurrency = (v) => new Intl.NumberFormat('pt-BR', { style: 'currency'
 export default function CartModal({ onClose }) {
     const [cartItems, setCartItems] = useState([]);
     const [total, setTotal] = useState(0);
-    const [userId, setUserId] = useState(null);
+    const [userId, setUserId] = useState(undefined);
+    const [loadingCart, setLoadingCart] = useState(true);
     const [isSyncing, setIsSyncing] = useState(false);
     const navigate = useNavigate();
-    const pendingUpdates = useRef({});  // { productId: quantity }
+    const pendingUpdates = useRef({});
     const debounceTimer = useRef(null);
 
     /* ---------- USER ---------- */
     useEffect(() => {
         const cu = localStorage.getItem('currentUser');
-        if (!cu) return;
-        try { setUserId(JSON.parse(cu)?.id ?? null); }
-        catch { setUserId(null); }
+        if (!cu) { setUserId(null); return; }
+
+        try {
+            const id = JSON.parse(cu)?.id;
+            if (id) {
+                localStorage.removeItem('cart');
+            }
+            setUserId(id ?? null);
+        } catch {
+            setUserId(null);
+        }
     }, []);
+
 
     /* ---------- FETCH CART ---------- */
     const updateCart = async () => {
-        if (isSyncing) return;              // trava enquanto sincroniza
+        setLoadingCart(true);
         let items = [];
 
         if (userId) {
@@ -38,16 +48,19 @@ export default function CartModal({ onClose }) {
         } else {
             items = JSON.parse(localStorage.getItem('cart')) || [];
         }
-
         setCartItems(items);
-        setTotal(items.reduce((s, it) => s + (it.product?.price || it.price) * it.quantity, 0));
+        setTotal(items.reduce((s, it) =>
+            s + (it.product?.price || it.price) * it.quantity, 0));
+        setLoadingCart(false);
     };
-
-    useEffect(() => { updateCart(); }, [userId]);
+    useEffect(() => {
+        if (userId === undefined) return;
+        updateCart();
+    }, [userId]);
 
     /* ---------- SYNC ---------- */
     const syncUpdates = async () => {
-        const updates = pendingUpdates.current;   // { productId: qty }
+        const updates = pendingUpdates.current;
         pendingUpdates.current = {};
 
         if (!userId || !Object.keys(updates).length) return;
@@ -57,11 +70,19 @@ export default function CartModal({ onClose }) {
             await Promise.all(
                 Object.entries(updates).map(([productId, qty]) =>
                     qty <= 0
-                        ? fetch(`${API_BASE_URL}/cart-item/remove/${productId}`, { method: 'DELETE' })          // 🔄 ALTERADO
-                        : fetch(`${API_BASE_URL}/cart-item/update-quantity`, {                                   // 🔄 ALTERADO
+                        ? fetch(`${API_BASE_URL}/cart-item/remove`, {
+                            method: 'DELETE',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ userId, productId: productId }),
+                        })
+                        : fetch(`${API_BASE_URL}/cart-item/update-quantity`, {
                             method: 'PATCH',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ userId, itemId: Number(productId), quantity: qty }),
+                            body: JSON.stringify({
+                                userId,
+                                itemId: Number(productId),
+                                quantity: qty,
+                            }),
                         })
                 )
             );
@@ -73,47 +94,29 @@ export default function CartModal({ onClose }) {
         }
     };
 
+
     const scheduleSync = () => {
         if (debounceTimer.current) clearTimeout(debounceTimer.current);
-        if (userId) setIsSyncing(true);   // trava a lista antes do debounce
+        if (userId) setIsSyncing(true);
         debounceTimer.current = setTimeout(syncUpdates, 1000);
     };
 
     /* ---------- HANDLERS ---------- */
-    const handleAddQuantity = (productId) => {
-        setCartItems((old) =>
-            old.map((it) =>
-                (it.product?.id || it.id) === productId
-                    ? (() => {
-                        const q = it.quantity + 1;
-                        pendingUpdates.current[productId] = q;       // 🔄 ALTERADO
-                        scheduleSync();
-                        return { ...it, quantity: q };
-                    })()
-                    : it
-            )
-        );
-    };
 
-    const handleDecreaseQuantity = (productId) => {
-        setCartItems((old) =>
-            old
-                .map((it) => {
-                    if ((it.product?.id || it.id) !== productId) return it;
-                    const q = it.quantity - 1;
-                    pendingUpdates.current[productId] = q;           // 🔄 ALTERADO
-                    scheduleSync();
-                    return q <= 0 ? null : { ...it, quantity: q };
-                })
-                .filter(Boolean)
-        );
-    };
 
     const handleRemove = (productId) => {
-        setCartItems((old) => old.filter((it) => (it.product?.id || it.id) !== productId));
-        pendingUpdates.current[productId] = 0;                 // 🔄 ALTERADO
+        setCartItems((old) => {
+            const next = old.filter((it) => (it.product?.id || it.id) !== productId);
+
+            if (!userId) localStorage.setItem('cart', JSON.stringify(next));
+
+            return next;
+        });
+
+        pendingUpdates.current[productId] = 0;
         scheduleSync();
     };
+
 
     const handleCheckout = () => {
         onClose();
@@ -124,23 +127,27 @@ export default function CartModal({ onClose }) {
     return (
         <div className="fixed inset-0 z-50 flex justify-end" onClick={onClose}>
             <div className="w-full max-w-md h-full bg-white shadow-xl flex flex-col" onClick={(e) => e.stopPropagation()}>
+
+
                 {/* header */}
                 <div className="flex justify-between items-center p-4 border-b">
                     <h2 className="text-xl font-semibold">Sua Sacola</h2>
-                    <button onClick={onClose} className="text-gray-500 hover:text-gray-800">
+                    <button onClick={onClose} className="cursor-pointer text-gray-500 hover:text-gray-800">
                         <HiXMark size={24} />
                     </button>
                 </div>
 
                 {/* items */}
                 <div className="flex-grow p-4 overflow-y-auto">
-                    {cartItems.length === 0 ? (
+                    {loadingCart ? (
+                        <p className="text-center text-gray-500 mt-10">Carregando…</p>
+                    ) : cartItems.length === 0 ? (
                         <p className="text-center text-gray-500 mt-10">Sua sacola está vazia.</p>
                     ) : (
                         <ul className="space-y-4">
                             {cartItems.map((item) => {
                                 const product = item.product || item;
-                                const productId = product.id;                                   // 🔄 ALTERADO
+                                const productId = product.id;
                                 return (
                                     <li key={productId} className="flex items-center space-x-4">
                                         <img src={product.imageUrl} alt={product.name} className="w-20 h-20 object-contain rounded border" />
@@ -149,18 +156,19 @@ export default function CartModal({ onClose }) {
 
                                         <div className="flex-grow">
                                             <p className="font-semibold">
-                                                {product.description && product.description.substring(0, 30)}…
+                                                {product.description && product.description.substring(0, 30) + '...'}
                                             </p>
                                             <p className="text-sm text-gray-600">{formatCurrency(product.price)}</p>
                                         </div>
 
-                                        <button onClick={() => handleRemove(productId)} className="text-red-500 hover:text-red-700">
+                                        <button onClick={() => handleRemove(productId)} className="cursor-pointer text-red-500 hover:text-red-700">
                                             <HiOutlineTrash size={20} />
                                         </button>
                                     </li>
                                 );
                             })}
                         </ul>
+
                     )}
                 </div>
 
@@ -173,7 +181,7 @@ export default function CartModal({ onClose }) {
                         </div>
                         <button
                             onClick={handleCheckout}
-                            className="w-full bg-pink-500 text-white py-3 rounded-lg font-semibold hover:bg-pink-600"
+                            className="w-full cursor-pointer bg-pink-500 text-white py-3 rounded-lg font-semibold hover:bg-pink-600"
                         >
                             Ir para o Checkout
                         </button>

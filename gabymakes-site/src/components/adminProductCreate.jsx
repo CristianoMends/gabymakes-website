@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { HiCheckCircle, HiXCircle } from "react-icons/hi";
 import LoadingCircles from "./loading";
 import Message from "./message";
 
@@ -85,7 +86,7 @@ export default function AdminProductCreate({ onSuccess, onCancel }) {
     "Sem parabenos",
   ].sort();
 
-
+  const [analysis, setAnalysis] = useState(null);
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
@@ -96,9 +97,40 @@ export default function AdminProductCreate({ onSuccess, onCancel }) {
   };
 
   const handleFileChange = (e) => {
-    setFile(e.target.files?.[0] || null);
-  };
+    const selected = e.target.files?.[0];
+    setAnalysis(null);
 
+    if (!selected) {
+      setFile(null);
+      return;
+    }
+
+    const validTypes = ["image/jpeg", "image/png"];
+    const maxSizeBytes = 6.1 * 1024 * 1024;
+    const sizeOK = selected.size <= maxSizeBytes;
+    const typeOK = validTypes.includes(selected.type);
+
+    const img = new Image();
+    img.onload = () => {
+      const { width, height } = img;
+      const minSizeOK = width >= 500 && height >= 500;
+      const ratioOK = Math.abs(width - height) / Math.max(width, height) <= 0.1;
+
+      setAnalysis({
+        width,
+        height,
+        typeOK,
+        sizeOK,
+        minSizeOK,
+        ratioOK,
+        fileType: selected.type,
+        fileSize: selected.size,
+      });
+    };
+    img.src = URL.createObjectURL(selected);
+
+    setFile(selected);
+  };
   const validateForm = () => {
     const { price, quantity, description, brand, category } = form;
 
@@ -175,7 +207,6 @@ export default function AdminProductCreate({ onSuccess, onCancel }) {
       }
       const { url: imageUrl } = await uploadRes.json();
 
-      /* 2) Cadastro do produto */
       const productRes = await fetch(`${API_URL}/products`, {
         method: "POST",
         headers: {
@@ -229,6 +260,8 @@ export default function AdminProductCreate({ onSuccess, onCancel }) {
         />
       )}
       <div className="bg-[#fafafa] p-6">
+        <h2 className="text-xl font-bold mb-4">Adicionar Produto</h2>
+
         <form
           onSubmit={handleSubmit}
           className="border rounded p-6 bg-white max-w-5xl mx-auto"
@@ -318,12 +351,75 @@ export default function AdminProductCreate({ onSuccess, onCancel }) {
                 className="border rounded px-3 py-2 w-full"
               />
             </label>
+            {analysis && (
+              <div className="mt-4 p-4 border rounded bg-gray-50">
+                <p className="text-sm font-semibold text-gray-700 mb-2">
+                  Diagnóstico da imagem selecionada:
+                </p>
+                <ul className="text-sm space-y-1">
+                  <li className="flex items-center gap-2">
+                    {analysis.typeOK ? (
+                      <HiCheckCircle className="text-green-600" />
+                    ) : (
+                      <HiXCircle className="text-red-600" />
+                    )}
+                    <span>
+                      Formato <strong>{analysis.fileType}</strong> {analysis.typeOK ? "suportado" : "não suportado (use JPG ou PNG)"}
+                    </span>
+                  </li>
+
+                  <li className="flex items-center gap-2">
+                    {analysis.sizeOK ? (
+                      <HiCheckCircle className="text-green-600" />
+                    ) : (
+                      <HiXCircle className="text-red-600" />
+                    )}
+                    <span>
+                      Tamanho <strong>{(analysis.fileSize / 1024 / 1024).toFixed(2)} MB</strong> {analysis.sizeOK ? "(ok)" : "(excede 6 MB)"}
+                    </span>
+                  </li>
+
+                  <li className="flex items-center gap-2">
+                    {analysis.minSizeOK ? (
+                      <HiCheckCircle className="text-green-600" />
+                    ) : (
+                      <HiXCircle className="text-red-600" />
+                    )}
+                    <span>
+                      Dimensão mínima 500×500 px ({analysis.width}×{analysis.height})
+                    </span>
+                  </li>
+
+                  <li className="flex items-center gap-2">
+                    {analysis.ratioOK ? (
+                      <HiCheckCircle className="text-green-600" />
+                    ) : (
+                      <HiXCircle className="text-red-600" />
+                    )}
+                    <span>
+                      Proporção próxima de quadrado
+                    </span>
+                  </li>
+                </ul>
+
+              </div>
+            )}
+
+
 
             <div className="flex gap-2">
               <button
                 type="submit"
-                disabled={loading}
-                className="bg-[#FFA5BD] cursor-pointer hover:bg-[#ff94b3] disabled:opacity-60 text-white font-semibold px-6 py-2 rounded shadow"
+                disabled={
+                  loading ||
+                  form.invalid ||
+                  !analysis ||
+                  !analysis.typeOK ||
+                  !analysis.sizeOK ||
+                  !analysis.minSizeOK ||
+                  !analysis.ratioOK
+                }
+                className="bg-pink-300 cursor-pointer hover:bg-pink-400 disabled:opacity-50 text-black font-semibold px-6 py-2 rounded shadow"
               >
                 {loading ? "Salvando…" : "Salvar"}
               </button>
@@ -332,7 +428,7 @@ export default function AdminProductCreate({ onSuccess, onCancel }) {
                 <button
                   type="button"
                   onClick={onCancel}
-                  className="border cursor-pointer px-6 py-2 rounded shadow"
+                  className="bg-pink-300 cursor-pointer hover:bg-pink-400 disabled:opacity-50 text-black font-semibold px-6 py-2 rounded shadow"
                 >
                   Cancelar
                 </button>
@@ -340,6 +436,8 @@ export default function AdminProductCreate({ onSuccess, onCancel }) {
             </div>
           </div>
         </form>
+
+
       </div>
     </>
   );

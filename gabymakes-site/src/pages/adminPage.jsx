@@ -138,7 +138,7 @@ export default function AdminPage() {
 
             </aside>
 
-            <main className="flex-1 p-6">{renderPage()}</main>
+            <main className="flex-1 p-6 overflow-y-scroll">{renderPage()}</main>
         </div>
     );
 }

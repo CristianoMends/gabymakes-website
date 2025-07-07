@@ -3,10 +3,8 @@ import AdminProductList from "../components/adminProductList";
 import AdminProductCreate from "../components/adminProductCreate";
 import AdminProductEdit from "../components/adminProductEdit";
 import PageNotFound from "./pageNotFound";
-import Breadcrumb from "../components/breadcrumb";
 
 export default function AdminProduct({ page = "list" }) {
-
     const [currentPage, setCurrentPage] = useState(page);
     const [selectedId, setSelectedId] = useState(null);
 
@@ -14,7 +12,7 @@ export default function AdminProduct({ page = "list" }) {
         case "list":
             return (
                 <div>
-                    <Breadcrumb />
+
                     <div className="mb-4">
                         <button
                             onClick={() => setCurrentPage("create")}
@@ -36,7 +34,6 @@ export default function AdminProduct({ page = "list" }) {
         case "create":
             return (
                 <div>
-                    <Breadcrumb />
                     <AdminProductCreate
                         onCancel={() => setCurrentPage("list")}
                         onSuccess={() => setCurrentPage("list")}
@@ -47,14 +44,12 @@ export default function AdminProduct({ page = "list" }) {
         case "edit":
             return (
                 <div>
-                    <Breadcrumb />
                     <AdminProductEdit
                         id={selectedId}
                         onEdit={() => setCurrentPage("list")}
                         onCancel={() => setCurrentPage("list")}
-                        onSuccess={() => setCurrentPage("list")}
                     />
-                </div >
+                </div>
             );
 
         default:

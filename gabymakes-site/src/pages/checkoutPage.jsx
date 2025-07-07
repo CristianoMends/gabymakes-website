@@ -457,7 +457,7 @@ export default function CheckoutPage() {
                         <img
                             src={p.imagem}
                             alt={p.nome}
-                            className="w-20 h-20 object-contain border rounded"
+                            className="w-20 h-20 object-contain rounded"
                         />
                         <div className="flex-1">
                             <p className="text-sm">{p.nome}</p>
