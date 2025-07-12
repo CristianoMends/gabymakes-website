@@ -1,6 +1,5 @@
 import { useNavigate } from "react-router-dom";
 import cardPlaceholder from '../assets/card-content.png';
-import { HiOutlineShoppingBag } from "react-icons/hi2";
 import Message from "./message";
 import { useState } from "react";
 
