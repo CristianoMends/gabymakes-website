@@ -1,8 +1,5 @@
 import { useState, useEffect } from "react";
-import Banner from "./banner";
-import Footer from "./footer";
-import Header from "./header";
-import ProductCard from "./ProductCard"; // Importa o ProductCard
+import ProductCard from "./ProductCard";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
