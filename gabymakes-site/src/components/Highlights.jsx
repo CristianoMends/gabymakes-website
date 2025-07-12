@@ -3,7 +3,7 @@ import ProductCard from "./ProductCard";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
-export default function Destaques() {
+export default function Highlights() {
     document.title = "Destaques | GabyMakes e acessórios";
 
     const [sections, setSections] = useState([]);
