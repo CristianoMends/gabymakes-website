@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { FiBox, FiStar, FiImage, FiLogOut, FiHome } from "react-icons/fi"; // ⬅️ Importa ícone de sair
 import logo from "../assets/logo-bg-transparent-1.png";
-import AdminProduct from "./adminProduct";
+import AdminProduct from "../components/adminProduct";
+import AdminHighlights from "../components/AdminHighlights";
 
 import Message from "../components/message";
 import LoadingCircles from "../components/loading";
@@ -41,7 +42,7 @@ export default function AdminPage() {
             case "products":
                 return <AdminProduct page="list" />;
             case "highlights":
-                return <div className="p-4">Gestão de destaques (em breve)</div>;
+                return <AdminHighlights/>;
             case "banners":
                 return <div className="p-4">Gestão de banners (em breve)</div>;
             default:

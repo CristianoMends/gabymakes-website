@@ -6,7 +6,6 @@ import RegisterPage from './pages/register'
 import AboutPage from './pages/about'
 import ProductDetailPage from './pages/detailsProduct'
 import MessageContainer from './components/messageContainer'
-import Destaques from './pages/destaques'
 import Busca from './pages/busca'
 import UserPage from './pages/userPage';
 import AdminPage from './pages/adminPage'
@@ -22,7 +21,6 @@ function App() {
                 <Route path="login" element={<LoginPage />} />
                 <Route path="cadastro" element={<RegisterPage />} />
                 <Route path="sobre" element={<AboutPage />} />
-                <Route path="destaques" element={<Destaques />} />
                 <Route path="busca" element={<Busca />} />
                 <Route path="user/:id" element={<UserPage />} />
 

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { HiCheckCircle, HiXCircle } from "react-icons/hi";
-import LoadingCircles from "./loading";
-import Message from "./message";
+import LoadingCircles from "./loading"; // Certifique-se de que o caminho está correto
+import Message from "./message";     // Certifique-se de que o caminho está correto
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
@@ -13,77 +13,20 @@ export default function AdminProductCreate({ onSuccess, onCancel }) {
     brand: "",
     category: "",
   });
+
   const categories = [
-    // Maquiagem
-    "Base",
-    "Corretivo",
-    "Pó facial",
-    "Blush",
-    "Sombra",
-    "Máscara de cílios",
-    "Delineador",
-    "Batom",
-    "Gloss",
-    "Iluminador",
-    "Primer",
-    "Fixador de maquiagem",
-
-    // Pele
-    "Hidratante facial",
-    "Protetor solar",
-    "Sabonete facial",
-    "Esfoliante facial",
-    "Tônico facial",
-    "Sérum facial",
-    "Máscara facial",
-
-    // Corpo e banho
-    "Sabonete corporal",
-    "Hidratante corporal",
-    "Esfoliante corporal",
-    "Desodorante",
-    "Óleo corporal",
-    "Loção pós-sol",
-
-    // Cabelos
-    "Shampoo",
-    "Condicionador",
-    "Máscara capilar",
-    "Leave-in",
-    "Óleo capilar",
-    "Tônico capilar",
-    "Finalizador",
-    "Gel/Modelador",
-
-    // Unhas
-    "Esmalte",
-    "Removedor de esmalte",
-    "Fortalecedor de unhas",
-    "Kit manicure",
-
-    // Fragrâncias
-    "Perfume feminino",
-    "Perfume masculino",
-    "Body splash",
-    "Colônia",
-
-    // Masculino
-    "Barbeador",
-    "Pós-barba",
-    "Espuma de barbear",
-    "Balm para barba",
-
-    // Infantil
-    "Shampoo infantil",
-    "Sabonete infantil",
-    "Protetor solar infantil",
-    "Colônia infantil",
-
-    // Natural/Vegano
-    "Orgânico",
-    "Vegano",
-    "Cruelty-free",
-    "Sem parabenos",
+    "Base", "Corretivo", "Pó facial", "Blush", "Sombra", "Máscara de cílios",
+    "Delineador", "Batom", "Gloss", "Iluminador", "Primer", "Fixador de maquiagem",
+    "Hidratante facial", "Protetor solar", "Sabonete facial", "Esfoliante facial",
+    "Tônico facial", "Sérum facial", "Máscara facial", "Sabonete corporal",
+    "Hidratante corporal", "Esfoliante corporal", "Desodorante", "Óleo corporal",
+    "Loção pós-sol", "Shampoo", "Condicionador", "Máscara capilar", "Leave-in",
+    "Óleo capilar", "Tônico capilar", "Finalizador", "Gel/Modelador", "Esmalte",
+    "Removedor de esmalte", "Fortalecedor de unhas", "Kit manicure",
+    "Perfume feminino", "Perfume masculino", "Body splash", "Colônia",
+    "Barbeador", "Pós-barba", "Espuma de barbear", "Balm para barba",
+    "Shampoo infantil", "Sabonete infantil", "Protetor solar infantil",
+    "Colônia infantil", "Orgânico", "Vegano", "Cruelty-free", "Sem parabenos",
   ].sort();
 
   const [analysis, setAnalysis] = useState(null);
@@ -99,9 +42,9 @@ export default function AdminProductCreate({ onSuccess, onCancel }) {
   const handleFileChange = (e) => {
     const selected = e.target.files?.[0];
     setAnalysis(null);
+    setFile(null); // Limpa o arquivo anterior se nenhum for selecionado ou se for inválido
 
     if (!selected) {
-      setFile(null);
       return;
     }
 
@@ -126,60 +69,47 @@ export default function AdminProductCreate({ onSuccess, onCancel }) {
         fileType: selected.type,
         fileSize: selected.size,
       });
+      setFile(selected); // Define o arquivo apenas se a análise for iniciada
+    };
+    img.onerror = () => {
+      // Caso a imagem não possa ser carregada (arquivo corrompido, etc.)
+      setMessage({ type: "error", text: "Não foi possível carregar a imagem para análise. Verifique o arquivo." });
+      setFile(null);
+      setAnalysis(null);
     };
     img.src = URL.createObjectURL(selected);
-
-    setFile(selected);
   };
+
   const validateForm = () => {
     const { price, quantity, description, brand, category } = form;
 
     if (!price || Number(price) <= 0) {
-      setMessage({
-        type: "error",
-        text: "Informe um preço válido."
-      })
+      setMessage({ type: "error", text: "Informe um preço válido (maior que zero)." });
       return false;
     }
     if (!quantity || Number(quantity) < 0) {
-      setMessage({
-        type: "error",
-        text: "Informe uma quantidade válida."
-      })
+      setMessage({ type: "error", text: "Informe uma quantidade válida (zero ou mais)." });
       return false;
     }
     if (!description.trim()) {
-      setMessage({
-        type: "error",
-        text: "A descrição é obrigatória."
-      })
+      setMessage({ type: "error", text: "A descrição é obrigatória." });
       return false;
     }
     if (!brand.trim()) {
-      setMessage({
-        type: "error",
-        text: "A marca é obrigatória."
-      })
+      setMessage({ type: "error", text: "A marca é obrigatória." });
       return false;
     }
     if (!category.trim()) {
-      setMessage({
-        type: "error",
-        text: "A categoria é obrigatória."
-      })
+      setMessage({ type: "error", text: "A categoria é obrigatória." });
       return false;
     }
-    if (!file) {
-      setMessage({
-        type: "error",
-        text: "Selecione uma imagem para o produto."
-      });
+    if (!file || !analysis || !analysis.typeOK || !analysis.sizeOK || !analysis.minSizeOK || !analysis.ratioOK) {
+      setMessage({ type: "error", text: "Selecione uma imagem válida para o produto com todas as verificações OK." });
       return false;
     }
 
     return true;
   };
-
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -199,9 +129,10 @@ export default function AdminProductCreate({ onSuccess, onCancel }) {
       });
 
       if (!uploadRes.ok) {
+        const errorData = await uploadRes.json();
         setMessage({
           type: "error",
-          text: "Erro ao fazer upload da imagem."
+          text: errorData.message || "Erro ao fazer upload da imagem."
         });
         throw new Error("Erro ao fazer upload da imagem.");
       }
@@ -222,9 +153,10 @@ export default function AdminProductCreate({ onSuccess, onCancel }) {
       });
 
       if (!productRes.ok) {
+        const errorData = await productRes.json();
         setMessage({
           type: "error",
-          text: "Erro ao cadastrar produto."
+          text: errorData.message || "Erro ao cadastrar produto."
         });
         throw new Error("Erro ao cadastrar produto.");
       }
@@ -233,14 +165,15 @@ export default function AdminProductCreate({ onSuccess, onCancel }) {
         type: "success",
         text: "Produto cadastrado com sucesso!"
       });
+      // Resetar formulário após sucesso
       setForm({ price: "", quantity: "", description: "", brand: "", category: "" });
       setFile(null);
+      setAnalysis(null);
+      // Chama a função onSuccess passada pelo pai para voltar para a lista
       onSuccess?.();
     } catch (err) {
-      setMessage({
-        type: "error",
-        text: err.message || "Erro inesperado."
-      });
+      console.error("Erro no submit do produto:", err); // Log para depuração
+      // A mensagem já deve ter sido setada por validação ou dentro do try-catch
     } finally {
       setLoading(false);
     }
@@ -259,185 +192,196 @@ export default function AdminProductCreate({ onSuccess, onCancel }) {
           onClose={() => setMessage(null)}
         />
       )}
-      <div className="bg-[#fafafa] p-6">
-        <h2 className="text-xl font-bold mb-4">Adicionar Produto</h2>
+      <div className="p-2 sm:p-4 md:p-6"> {/* Padding ajustado */}
+        {/* Título da seção já vem do AdminProduct pai */}
+        {/* <h2 className="text-xl font-bold mb-4">Adicionar Produto</h2> */}
 
         <form
           onSubmit={handleSubmit}
-          className="border rounded p-6 bg-white max-w-5xl mx-auto"
+          className="p-6 bg-white rounded-lg shadow-lg border border-gray-200 max-w-4xl mx-auto" // Aumentei o max-w
         >
-          <div className="grid md:grid-cols-2 gap-6">
-            {/* Coluna esquerda */}
+          <div className="grid md:grid-cols-2 gap-6 mb-6"> {/* Adicionei mb-6 */}
+            {/* Preço e Quantidade */}
             <div className="flex flex-col gap-4">
               <label className="block">
-                <span className="mb-1 font-semibold">Preço</span>
+                <span className="block text-gray-700 text-sm font-semibold mb-1">Preço (R$)</span>
                 <input
                   type="number"
                   name="price"
                   value={form.price}
                   onChange={handleChange}
-                  placeholder="0,00"
-                  className="border rounded px-3 py-2 w-full"
+                  placeholder="Ex: 99.90"
+                  className="block w-full p-3 border border-gray-300 rounded-md shadow-sm
+                                               focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent
+                                               text-gray-700 placeholder-gray-400"
                   step="0.01"
                   min="0"
                 />
               </label>
 
               <label className="block">
-                <span className="mb-1 font-semibold">Quantidade disponível</span>
+                <span className="block text-gray-700 text-sm font-semibold mb-1">Quantidade disponível</span>
                 <input
                   type="number"
                   name="quantity"
                   value={form.quantity}
                   onChange={handleChange}
-                  placeholder="0"
-                  className="border rounded px-3 py-2 w-full"
+                  placeholder="Ex: 100"
+                  className="block w-full p-3 border border-gray-300 rounded-md shadow-sm
+                                               focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent
+                                               text-gray-700 placeholder-gray-400"
                   min="0"
                 />
               </label>
             </div>
 
-            {/* Coluna direita */}
-            <label className="block">
-              <span className="mb-1 font-semibold">Descrição</span>
+            {/* Descrição */}
+            <label className="block md:col-span-1">
+              <span className="block text-gray-700 text-sm font-semibold mb-1">Descrição do Produto</span>
               <textarea
                 name="description"
                 value={form.description}
                 onChange={handleChange}
-                placeholder="insira a descrição"
-                className="border rounded px-3 py-2 w-full h-40 resize-none"
+                placeholder="Descreva o produto, suas características, benefícios, etc."
+                className="block w-full p-3 border border-gray-300 rounded-md shadow-sm
+                                           focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent
+                                           text-gray-700 placeholder-gray-400 h-full min-h-[120px] resize-y" // h-full e min-h
               />
             </label>
+          </div>
 
+          {/* Marca e Categoria */}
+          <div className="grid md:grid-cols-2 gap-6 mb-6">
             <label className="block">
-              <span className="mb-1 font-semibold">Marca</span>
+              <span className="block text-gray-700 text-sm font-semibold mb-1">Marca</span>
               <input
                 type="text"
                 name="brand"
                 value={form.brand}
                 onChange={handleChange}
-                placeholder="insira a marca"
-                className="border rounded px-3 py-2 w-full"
+                placeholder="Ex: Fenty Beauty"
+                className="block w-full p-3 border border-gray-300 rounded-md shadow-sm
+                                           focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent
+                                           text-gray-700 placeholder-gray-400"
               />
             </label>
 
             <label className="block">
-              <span className="mb-1 font-semibold">Categoria</span>
+              <span className="block text-gray-700 text-sm font-semibold mb-1">Categoria</span>
               <select
                 name="category"
                 value={form.category}
                 onChange={handleChange}
-                className="border rounded px-3 py-2 w-full"
+                className="block w-full p-3 border border-gray-300 rounded-md shadow-sm
+                                           focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent
+                                           text-gray-700"
               >
-                <option value="">Selecione uma categoria</option>
+                <option value="" disabled>Selecione uma categoria</option>
                 {categories.map((cat) => (
                   <option key={cat} value={cat}>
-                    {cat.toUpperCase()}
+                    {cat}
                   </option>
                 ))}
               </select>
             </label>
-
           </div>
 
-          {/* Upload e botões */}
-          <div className="mt-6 flex flex-col gap-4 md:w-1/2">
+          {/* Upload de Imagem */}
+          <div className="mb-6">
             <label className="block">
-              <span className="mb-1 font-semibold">Imagem</span>
+              <span className="block text-gray-700 text-sm font-semibold mb-1">Imagem do Produto</span>
               <input
                 type="file"
-                accept="image/*"
+                accept="image/jpeg, image/png"
                 onChange={handleFileChange}
-                className="border rounded px-3 py-2 w-full"
+                className="block w-full text-sm cursor-pointer text-gray-500 file:cursor-pointer
+                                           file:mr-4 file:py-2 file:px-4
+                                           file:rounded-full file:border-0
+                                           file:text-sm file:font-semibold
+                                           file:bg-pink-50 file:text-pink-700
+                                           hover:file:bg-pink-100 cursor-pointer"
               />
             </label>
+
             {analysis && (
-              <div className="mt-4 p-4 border rounded bg-gray-50">
+              <div className="mt-4 p-4 border border-gray-200 rounded-lg bg-gray-50 shadow-sm">
                 <p className="text-sm font-semibold text-gray-700 mb-2">
                   Diagnóstico da imagem selecionada:
                 </p>
                 <ul className="text-sm space-y-1">
-                  <li className="flex items-center gap-2">
-                    {analysis.typeOK ? (
-                      <HiCheckCircle className="text-green-600" />
-                    ) : (
-                      <HiXCircle className="text-red-600" />
-                    )}
+                  <li className={`flex items-center gap-2 ${analysis.typeOK ? "text-green-700" : "text-red-700"}`}>
+                    {analysis.typeOK ? (<HiCheckCircle className="text-green-500" />) : (<HiXCircle className="text-red-500" />)}
                     <span>
-                      Formato <strong>{analysis.fileType}</strong> {analysis.typeOK ? "suportado" : "não suportado (use JPG ou PNG)"}
+                      Formato <strong>{analysis.fileType}</strong> {analysis.typeOK ? "suportado (JPG ou PNG)" : "não suportado (use JPG ou PNG)"}
                     </span>
                   </li>
 
-                  <li className="flex items-center gap-2">
-                    {analysis.sizeOK ? (
-                      <HiCheckCircle className="text-green-600" />
-                    ) : (
-                      <HiXCircle className="text-red-600" />
-                    )}
+                  <li className={`flex items-center gap-2 ${analysis.sizeOK ? "text-green-700" : "text-red-700"}`}>
+                    {analysis.sizeOK ? (<HiCheckCircle className="text-green-500" />) : (<HiXCircle className="text-red-500" />)}
                     <span>
-                      Tamanho <strong>{(analysis.fileSize / 1024 / 1024).toFixed(2)} MB</strong> {analysis.sizeOK ? "(ok)" : "(excede 6 MB)"}
+                      Tamanho <strong>{(analysis.fileSize / 1024 / 1024).toFixed(2)} MB</strong> {analysis.sizeOK ? "(OK)" : "(excede 6 MB)"}
                     </span>
                   </li>
 
-                  <li className="flex items-center gap-2">
-                    {analysis.minSizeOK ? (
-                      <HiCheckCircle className="text-green-600" />
-                    ) : (
-                      <HiXCircle className="text-red-600" />
-                    )}
+                  <li className={`flex items-center gap-2 ${analysis.minSizeOK ? "text-green-700" : "text-red-700"}`}>
+                    {analysis.minSizeOK ? (<HiCheckCircle className="text-green-500" />) : (<HiXCircle className="text-red-500" />)}
                     <span>
-                      Dimensão mínima 500×500 px ({analysis.width}×{analysis.height})
+                      Dimensão mínima 500×500 px ({analysis.width}×{analysis.height}) {analysis.minSizeOK ? "(OK)" : "(muito pequena)"}
                     </span>
                   </li>
 
-                  <li className="flex items-center gap-2">
-                    {analysis.ratioOK ? (
-                      <HiCheckCircle className="text-green-600" />
-                    ) : (
-                      <HiXCircle className="text-red-600" />
-                    )}
+                  <li className={`flex items-center gap-2 ${analysis.ratioOK ? "text-green-700" : "text-red-700"}`}>
+                    {analysis.ratioOK ? (<HiCheckCircle className="text-green-500" />) : (<HiXCircle className="text-red-500" />)}
                     <span>
-                      Proporção próxima de quadrado
+                      Proporção próxima de quadrado {analysis.ratioOK ? "(OK)" : "(desproporcional)"}
                     </span>
                   </li>
                 </ul>
-
+                {(!analysis.typeOK || !analysis.sizeOK || !analysis.minSizeOK || !analysis.ratioOK) && (
+                  <p className="mt-3 text-red-600 text-sm font-medium">Por favor, corrija os problemas da imagem antes de salvar.</p>
+                )}
               </div>
             )}
+            {file && !analysis && ( // Adiciona feedback se o arquivo for selecionado mas a análise ainda não rodou/falhou
+              <p className="mt-2 text-gray-500 text-sm">Analisando imagem...</p>
+            )}
+          </div>
 
-
-
-            <div className="flex gap-2">
+          {/* Botões de Ação */}
+          <div className="flex gap-3 justify-end mt-8"> {/* Ajustei o espaçamento e justificação */}
+            {onCancel && (
               <button
-                type="submit"
-                disabled={
-                  loading ||
-                  form.invalid ||
-                  !analysis ||
-                  !analysis.typeOK ||
-                  !analysis.sizeOK ||
-                  !analysis.minSizeOK ||
-                  !analysis.ratioOK
-                }
-                className="bg-pink-300 cursor-pointer hover:bg-pink-400 disabled:opacity-50 text-black font-semibold px-6 py-2 rounded shadow"
+                type="button"
+                onClick={onCancel}
+                className="px-6 py-2 cursor-pointer rounded-md font-semibold border border-gray-300 text-gray-700
+                                           hover:bg-gray-100 transition-colors duration-200 shadow-sm
+                                           focus:outline-none focus:ring-2 focus:ring-gray-400"
               >
-                {loading ? "Salvando…" : "Salvar"}
+                Cancelar
               </button>
-
-              {onCancel && (
-                <button
-                  type="button"
-                  onClick={onCancel}
-                  className="bg-pink-300 cursor-pointer hover:bg-pink-400 disabled:opacity-50 text-black font-semibold px-6 py-2 rounded shadow"
-                >
-                  Cancelar
-                </button>
+            )}
+            <button
+              type="submit"
+              disabled={
+                loading ||
+                !form.price || !form.quantity || !form.description || !form.brand || !form.category ||
+                !analysis || !analysis.typeOK || !analysis.sizeOK || !analysis.minSizeOK || !analysis.ratioOK
+              }
+              className="bg-pink-500 cursor-pointer text-white px-6 py-2 rounded-md font-semibold
+                                       hover:bg-pink-600 transition-colors duration-200 shadow-md
+                                       disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-pink-500
+                                       focus:outline-none focus:ring-2 focus:ring-pink-400"
+            >
+              {loading ? (
+                <span className="flex items-center">
+                  <LoadingCircles className="w-5 h-5 mr-2" /> Salvando...
+                </span>
+              ) : (
+                "Salvar Produto"
               )}
-            </div>
+            </button>
           </div>
         </form>
-
-
       </div>
     </>
   );
