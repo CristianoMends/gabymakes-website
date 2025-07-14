@@ -35,7 +35,7 @@ export default function HeaderVariant() {
 
     return (
         <div className="relative">
-            <header className="bg-pink-300 px-8 py-6 flex items-center shadow-md">
+            <header className="bg-pink-300 px-8 py-6 flex items-center">
 
                 <div className="flex-shrink-0 cursor-pointer" onClick={() => navigate('/')}>
                     <img src={logo} alt="Logo Gaby" className="h-10" />

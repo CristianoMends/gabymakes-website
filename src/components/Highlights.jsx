@@ -7,12 +7,12 @@ export default function Highlights() {
     document.title = "Destaques | GabyMakes e acessórios";
 
     const [sections, setSections] = useState([]);
-    const [allProducts, setAllProducts] = useState([]); // Agora 'allProducts' para evitar conflito
+    const [allProducts, setAllProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [userId, setUserId] = useState(null); // Estado para o userId
+    const [userId, setUserId] = useState(null);
 
-    // Hook para carregar TODOS os produtos (necessário para o ProductCard)
+
     useEffect(() => {
         const fetchAllProducts = async () => {
             try {
@@ -24,19 +24,19 @@ export default function Highlights() {
                 setAllProducts(data);
             } catch (err) {
                 console.error("Erro ao carregar todos os produtos:", err);
-                // Não define erro globalmente aqui para não bloquear o carregamento das seções
+
             }
         };
         fetchAllProducts();
 
-        // Obter userId (adapte conforme sua lógica de autenticação)
+
         const storedUserId = localStorage.getItem('userId');
         if (storedUserId) {
             setUserId(storedUserId);
         }
     }, []);
 
-    // Carrega as seções de destaque
+
     useEffect(() => {
         setLoading(true);
         fetch(`${API_URL}/sections`)
@@ -47,7 +47,7 @@ export default function Highlights() {
                 return res.json();
             })
             .then(data => {
-                // Garante que 'data' é um array
+
                 setSections(Array.isArray(data) ? data : []);
                 setLoading(false);
             })
@@ -85,15 +85,14 @@ export default function Highlights() {
                                 {section.title}
                             </h2>
                             <div className="flex flex-wrap justify-center gap-6">
-                                {/* Mapeia os produtos da seção e usa o ProductCard */}
                                 {section.products && section.products.length > 0 ? (
                                     section.products.map(sectionProduct => (
-                                        // Passa o objeto do produto diretamente para o ProductCard
+
                                         <ProductCard
                                             key={sectionProduct.id}
                                             product={sectionProduct}
-                                            userId={userId} // Passa o userId para o ProductCard
-                                        // cloudUrl={cloudUrl} // Se tiver uma cloudUrl global, passe aqui
+                                            userId={userId}
+
                                         />
                                     ))
                                 ) : (
