@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { HiCheckCircle, HiXCircle } from "react-icons/hi";
-import LoadingCircles from "./loading"; // Certifique-se de que o caminho está correto
-import Message from "./message";     // Certifique-se de que o caminho está correto
+import LoadingCircles from "./loading";
+import Message from "./message";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
@@ -42,7 +42,7 @@ export default function AdminProductCreate({ onSuccess, onCancel }) {
   const handleFileChange = (e) => {
     const selected = e.target.files?.[0];
     setAnalysis(null);
-    setFile(null); // Limpa o arquivo anterior se nenhum for selecionado ou se for inválido
+    setFile(null);
 
     if (!selected) {
       return;
@@ -69,10 +69,10 @@ export default function AdminProductCreate({ onSuccess, onCancel }) {
         fileType: selected.type,
         fileSize: selected.size,
       });
-      setFile(selected); // Define o arquivo apenas se a análise for iniciada
+      setFile(selected);
     };
     img.onerror = () => {
-      // Caso a imagem não possa ser carregada (arquivo corrompido, etc.)
+
       setMessage({ type: "error", text: "Não foi possível carregar a imagem para análise. Verifique o arquivo." });
       setFile(null);
       setAnalysis(null);
@@ -165,15 +165,15 @@ export default function AdminProductCreate({ onSuccess, onCancel }) {
         type: "success",
         text: "Produto cadastrado com sucesso!"
       });
-      // Resetar formulário após sucesso
+
       setForm({ price: "", quantity: "", description: "", brand: "", category: "" });
       setFile(null);
       setAnalysis(null);
-      // Chama a função onSuccess passada pelo pai para voltar para a lista
+
       onSuccess?.();
     } catch (err) {
-      console.error("Erro no submit do produto:", err); // Log para depuração
-      // A mensagem já deve ter sido setada por validação ou dentro do try-catch
+      console.error("Erro no submit do produto:", err);
+
     } finally {
       setLoading(false);
     }
@@ -198,7 +198,7 @@ export default function AdminProductCreate({ onSuccess, onCancel }) {
 
         <form
           onSubmit={handleSubmit}
-          className="p-6 bg-white rounded-lg shadow-lg border border-gray-200 max-w-4xl mx-auto" // Aumentei o max-w
+          className="p-6 bg-white rounded-lg shadow-lg border border-gray-200 max-w-4xl mx-auto"
         >
           <div className="grid md:grid-cols-2 gap-6 mb-6"> {/* Adicionei mb-6 */}
             {/* Preço e Quantidade */}
@@ -245,7 +245,7 @@ export default function AdminProductCreate({ onSuccess, onCancel }) {
                 placeholder="Descreva o produto, suas características, benefícios, etc."
                 className="block w-full p-3 border border-gray-300 rounded-md shadow-sm
                                            focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent
-                                           text-gray-700 placeholder-gray-400 h-full min-h-[120px] resize-y" // h-full e min-h
+                                           text-gray-700 placeholder-gray-400 h-full min-h-[120px] resize-y"
               />
             </label>
           </div>
@@ -270,7 +270,7 @@ export default function AdminProductCreate({ onSuccess, onCancel }) {
               <span className="block text-gray-700 text-sm font-semibold mb-1">Categoria</span>
               <select
                 name="category"
-                value={form.category}
+                value={form.category.toUpperCase()}
                 onChange={handleChange}
                 className="block w-full p-3 border border-gray-300 rounded-md shadow-sm
                                            focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent
@@ -342,7 +342,7 @@ export default function AdminProductCreate({ onSuccess, onCancel }) {
                 )}
               </div>
             )}
-            {file && !analysis && ( // Adiciona feedback se o arquivo for selecionado mas a análise ainda não rodou/falhou
+            {file && !analysis && (
               <p className="mt-2 text-gray-500 text-sm">Analisando imagem...</p>
             )}
           </div>

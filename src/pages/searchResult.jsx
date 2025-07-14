@@ -1,43 +1,27 @@
-import { useState, useEffect, useCallback } from 'react'; // Adicionado useCallback
+import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import Header from '../components/header';
 import Footer from '../components/footer';
-import ProductCard from '../components/productcard'; // Usaremos ProductCard diretamente aqui
+import ProductCard from '../components/productcard';
 import Breadcrumb from '../components/breadcrumb';
-import LoadingCircles from '../components/loading'; // Para mostrar loading
-import Message from '../components/message';         // Para mensagens de erro/sucesso
+import LoadingCircles from '../components/loading';
+import Message from '../components/message';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
-const categories = [ // Lista de categorias para o filtro (pode ser carregada da API se houver endpoint)
-    "Base", "Corretivo", "Pó facial", "Blush", "Sombra", "Máscara de cílios", "Delineador",
-    "Batom", "Gloss", "Iluminador", "Primer", "Fixador de maquiagem", "Hidratante facial",
-    "Protetor solar", "Sabonete facial", "Esfoliante facial", "Tônico facial", "Sérum facial",
-    "Máscara facial", "Sabonete corporal", "Hidratante corporal", "Esfoliante corporal",
-    "Desodorante", "Óleo corporal", "Loção pós-sol", "Shampoo", "Condicionador", "Máscara capilar",
-    "Leave-in", "Óleo capilar", "Tônico capilar", "Finalizador", "Gel/Modelador", "Esmalte",
-    "Removedor de esmalte", "Fortalecedor de unhas", "Kit manicure", "Perfume feminino",
-    "Perfume masculino", "Body splash", "Colônia", "Barbeador", "Pós-barba", "Espuma de barbear",
-    "Balm para barba", "Shampoo infantil", "Sabonete infantil", "Protetor solar infantil",
-    "Colônia infantil", "Orgânico", "Vegano", "Cruelty-free", "Sem parabenos",
-].sort();
-
-const brands = [ // Lista de marcas para o filtro (pode ser carregada da API se houver endpoint)
-    "FENTY BEAUTY", "MAC", "Natura", "Boticário", "Quem Disse Berenice?", "Eudora", "Avon", "Vult"
-].sort();
-
-
 export default function SearchResult() {
-    const [searchParams, setSearchParams] = useSearchParams(); // Agora podemos mudar os searchParams
+    const [searchParams, setSearchParams] = useSearchParams();
     const initialQuery = searchParams.get('q') || '';
 
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [productCount, setProductCount] = useState(0);
-    const [userId, setUserId] = useState(null); // Para passar para o ProductCard
+    const [userId, setUserId] = useState(null);
 
-    // Estados para os filtros
+
+    const [dynamicCategories, setDynamicCategories] = useState([]);
+    const [dynamicBrands, setDynamicBrands] = useState([]);
     const [filters, setFilters] = useState({
         brand: searchParams.get('brand') || '',
         category: searchParams.get('category') || '',
@@ -45,11 +29,33 @@ export default function SearchResult() {
         priceMax: searchParams.get('priceMax') || '',
     });
 
-    // Estado para ordenação
-    const [sortOrder, setSortOrder] = useState(searchParams.get('sort') || ''); // Ex: 'relevance', 'price_asc', 'price_desc'
+    const [sortOrder, setSortOrder] = useState(searchParams.get('sort') || '');
+
+    useEffect(() => {
+        const fetchFilterOptions = async () => {
+            try {
+
+                const categoriesRes = await fetch(`${API_URL}/products/categories/unique`);
+                if (!categoriesRes.ok) throw new Error('Falha ao buscar categorias.');
+                const categoriesData = await categoriesRes.json();
+                setDynamicCategories(categoriesData);
 
 
-    // Função para buscar produtos (usando useCallback para otimização)
+                const brandsRes = await fetch(`${API_URL}/products/brands/unique`);
+                if (!brandsRes.ok) throw new Error('Falha ao buscar marcas.');
+                const brandsData = await brandsRes.json();
+                setDynamicBrands(brandsData);
+
+            } catch (err) {
+                console.error("Erro ao carregar opções de filtro:", err);
+
+            }
+        };
+
+        fetchFilterOptions();
+    }, []);
+
+
     const fetchProducts = useCallback(async () => {
         setLoading(true);
         setError(null);
@@ -57,18 +63,11 @@ export default function SearchResult() {
         setProductCount(0);
 
         const params = new URLSearchParams();
-        // O 'q' do seu search é 'description' na API
         if (initialQuery) params.append('description', initialQuery);
         if (filters.brand) params.append('brand', filters.brand);
         if (filters.category) params.append('category', filters.category);
         if (filters.priceMin) params.append('priceMin', filters.priceMin);
         if (filters.priceMax) params.append('priceMax', filters.priceMax);
-
-        // Adicionar ordenação como parâmetro da API se sua API suportar,
-        // ou ordenar no frontend se a API não suportar.
-        // Por enquanto, vamos considerar ordenar no frontend após a busca.
-        // Se sua API suportar, você adicionaria algo como:
-        // if (sortOrder && sortOrder !== 'relevance') params.append('sortBy', sortOrder);
 
         const queryString = params.toString();
         const url = `${API_URL}/products/search?${queryString}`;
@@ -80,14 +79,12 @@ export default function SearchResult() {
             }
             const data = await response.json();
 
-            // Ordenar os dados no frontend se a API não fizer isso
             let sortedData = [...data];
             if (sortOrder === 'price_asc') {
                 sortedData.sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
             } else if (sortOrder === 'price_desc') {
                 sortedData.sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
             }
-            // 'relevance' já é o padrão da API ou sem ordenação específica
 
             setProducts(sortedData);
             setProductCount(sortedData.length);
@@ -97,12 +94,11 @@ export default function SearchResult() {
         } finally {
             setLoading(false);
         }
-    }, [initialQuery, filters, sortOrder]); // Dependências para re-executar a busca
+    }, [initialQuery, filters, sortOrder]);
 
-    // Dispara a busca quando a query inicial ou os filtros/ordenação mudam
     useEffect(() => {
         fetchProducts();
-        // Atualiza a URL com os filtros atuais
+
         const newSearchParams = new URLSearchParams();
         if (initialQuery) newSearchParams.set('q', initialQuery);
         if (filters.brand) newSearchParams.set('brand', filters.brand);
@@ -110,10 +106,9 @@ export default function SearchResult() {
         if (filters.priceMin) newSearchParams.set('priceMin', filters.priceMin);
         if (filters.priceMax) newSearchParams.set('priceMax', filters.priceMax);
         if (sortOrder) newSearchParams.set('sort', sortOrder);
-        setSearchParams(newSearchParams); // Atualiza a URL sem recarregar a página
+        setSearchParams(newSearchParams);
     }, [fetchProducts, filters, sortOrder, initialQuery, setSearchParams]);
 
-    // Hook para obter o userId (para passar para o ProductCard)
     useEffect(() => {
         const storedUserId = localStorage.getItem('userId');
         if (storedUserId) {
@@ -130,7 +125,6 @@ export default function SearchResult() {
         setSortOrder(e.target.value);
     };
 
-
     document.title = initialQuery ? `Busca por "${initialQuery}" | GabyMakes` : "Resultados da Busca | GabyMakes";
 
     return (
@@ -140,16 +134,12 @@ export default function SearchResult() {
                 <div className="container mx-auto px-4 py-6">
                     <Breadcrumb />
 
-                    {/* Search Title */}
                     <h1 className="text-2xl font-bold text-gray-800 mb-6">
                         Você buscou por: <span className="italic font-normal text-pink-600">"{initialQuery}"</span>
                     </h1>
 
-                    {/* Controls Section */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center mb-8 p-4 border-y border-gray-200 bg-gray-50 rounded-md shadow-sm">
-                        {/* Filters */}
                         <div className="flex flex-wrap gap-3 justify-center md:justify-start">
-                            {/* Filter by Category */}
                             <select
                                 name="category"
                                 value={filters.category}
@@ -157,12 +147,11 @@ export default function SearchResult() {
                                 className="border rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-400 w-full sm:w-auto"
                             >
                                 <option value="">Todas as Categorias</option>
-                                {categories.map(cat => (
+                                {dynamicCategories.map(cat => (
                                     <option key={cat} value={cat}>{cat}</option>
                                 ))}
                             </select>
 
-                            {/* Filter by Brand */}
                             <select
                                 name="brand"
                                 value={filters.brand}
@@ -170,12 +159,11 @@ export default function SearchResult() {
                                 className="border rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-400 w-full sm:w-auto"
                             >
                                 <option value="">Todas as Marcas</option>
-                                {brands.map(brand => (
+                                {dynamicBrands.map(brand => (
                                     <option key={brand} value={brand}>{brand}</option>
                                 ))}
                             </select>
 
-                            {/* Price Range Filters */}
                             <div className="flex items-center gap-2 w-full sm:w-auto">
                                 <input
                                     type="number"
@@ -201,12 +189,10 @@ export default function SearchResult() {
                             </div>
                         </div>
 
-                        {/* Product Count */}
                         <div className="text-center text-gray-700 font-medium order-first md:order-none">
                             <p><strong>{productCount}</strong> produtos encontrados</p>
                         </div>
 
-                        {/* Sorting */}
                         <div className="flex justify-center md:justify-end">
                             <select
                                 value={sortOrder}
@@ -220,7 +206,6 @@ export default function SearchResult() {
                         </div>
                     </div>
 
-                    {/* Product List */}
                     <div className="mt-8">
                         {loading ? (
                             <div className="flex justify-center items-center h-40">
