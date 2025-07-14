@@ -1,23 +1,24 @@
 import { FiUser, FiSearch } from 'react-icons/fi';
 import { HiOutlineShoppingBag } from 'react-icons/hi2';
 import logo from '../assets/logo-bg-transparent-2.png';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react'; // searchContainerRef e searchQuery/setSearchQuery foram movidos
 import { useNavigate } from 'react-router-dom';
 import CartModal from './CartModal';
+import SearchBar from './SearchBar'; // Importe o novo componente SearchBar
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 export default function Header() {
-    const [showSearchMobile, setShowSearchMobile] = useState(false);
+    const [showSearchMobile, setShowSearchMobile] = useState(false); // Este estado fica aqui para controlar a visibilidade da SearchBar mobile
     const [userName, setUserName] = useState('');
     const [userId, setUserId] = useState(null);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [searchQuery, setSearchQuery] = useState('');
+    // searchQuery e searchContainerRef foram movidos para SearchBar
     const [cartItemCount, setCartItemCount] = useState(0);
     const [showCartModal, setShowCartModal] = useState(false);
 
-    const loginContainerRef = useRef(null);
-    const searchContainerRef = useRef(null);
+    const loginContainerRef = useRef(null); // Mantém este ref, se ainda for usado para login
+
     const navigate = useNavigate();
 
     // Checa login
@@ -49,6 +50,7 @@ export default function Header() {
         return () => window.removeEventListener('storage', checkLoginStatus);
     }, []);
 
+    // Lógica do carrinho
     useEffect(() => {
         async function updateCartCount() {
             if (userId) {
@@ -76,20 +78,6 @@ export default function Header() {
         window.addEventListener('cartUpdated', updateCartCount);
         return () => window.removeEventListener('cartUpdated', updateCartCount);
     }, [userId]);
-
-    // Fecha barra de busca mobile ao clicar fora
-    useEffect(() => {
-        function handleClickOutside(event) {
-            if (
-                searchContainerRef.current &&
-                !searchContainerRef.current.contains(event.target)
-            ) {
-                setShowSearchMobile(false);
-            }
-        }
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
 
     const handleUserIconClick = () => {
         if (!isLoggedIn) {
@@ -120,48 +108,36 @@ export default function Header() {
         }
     };
 
-    const handleSearchSubmit = (event) => {
-        event.preventDefault();
-        if (searchQuery.trim()) {
-            navigate(`/busca?q=${encodeURIComponent(searchQuery)}`);
-            setShowSearchMobile(false);
+    // Função para passar para o SearchBar para controlar showSearchMobile
+    const handleToggleMobileSearch = (shouldShow) => {
+        if (typeof shouldShow === 'boolean') {
+            setShowSearchMobile(shouldShow);
+        } else {
+            setShowSearchMobile(prev => !prev);
         }
     };
 
     return (
         <div className="relative">
-            <header className="bg-pink-300 px-8 py-6 flex items-center shadow-md">
+            <header className="bg-pink-300 px-8 py-6 flex items-center">
                 <div className="flex-shrink-0 cursor-pointer" onClick={() => navigate('/')}>
                     <img src={logo} alt="Logo Gaby" className="h-10" />
                 </div>
 
-                {/* Busca - Desktop */}
-                <div className="hidden md:flex flex-grow justify-center">
-                    <form
-                        onSubmit={handleSearchSubmit}
-                        className="flex items-center bg-pink-100 rounded-full shadow-inner px-4 h-10 w-96 max-w-full"
-                    >
-                        <input
-                            type="text"
-                            placeholder="Busca"
-                            className="flex-grow bg-transparent focus:outline-none text-gray-700 placeholder-gray-400 text-sm"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
-                        <button type="submit" aria-label="Buscar">
-                            <FiSearch className="text-gray-700 cursor-pointer" size={18} />
-                        </button>
-                    </form>
-                </div>
+                {/* Renderiza o componente SearchBar aqui */}
+                <SearchBar
+                    showMobile={showSearchMobile}
+                    onToggleMobileSearch={handleToggleMobileSearch}
+                />
 
                 {/* Ações */}
                 <div className="flex items-center space-x-4 ml-auto">
-                    {/* Busca mobile */}
+                    {/* Botão de busca mobile - AGORA APENAS O ÍCONE */}
                     <div className="md:hidden">
                         <FiSearch
                             size={22}
-                            className="text-gray-800 cursor-pointer"
-                            onClick={() => setShowSearchMobile(prev => !prev)}
+                            className="text-gray-800 cursor-pointer hover:text-pink-600 transition-colors"
+                            onClick={() => handleToggleMobileSearch(true)} // Apenas abre, o SearchBar fecha
                         />
                     </div>
 
@@ -192,29 +168,8 @@ export default function Header() {
                 </div>
             </header>
 
-            {/* Busca mobile flutuante */}
-            {showSearchMobile && (
-                <div ref={searchContainerRef} className="absolute top-full left-0 w-full bg-pink-100 px-4 py-2 z-40 shadow-lg">
-                    <form
-                        onSubmit={handleSearchSubmit}
-                        className="flex items-center bg-white rounded-full px-4 h-10 shadow-inner"
-                    >
-                        <input
-                            type="text"
-                            placeholder="Buscar..."
-                            className="flex-grow bg-transparent focus:outline-none text-gray-700 placeholder-gray-400 text-sm"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            autoFocus
-                        />
-                        <button type="submit" aria-label="Buscar">
-                            <FiSearch className="text-gray-700 cursor-pointer" size={18} />
-                        </button>
-                    </form>
-                </div>
-            )}
-
-            {/* Modal do carrinho */}
+            {/* O SearchBar já renderiza a busca mobile se showSearchMobile for true */}
+            {/* O modal do carrinho fica aqui */}
             {showCartModal && <CartModal onClose={() => setShowCartModal(false)} />}
         </div>
     );

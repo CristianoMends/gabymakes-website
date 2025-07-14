@@ -6,11 +6,11 @@ import RegisterPage from './pages/register'
 import AboutPage from './pages/about'
 import ProductDetailPage from './pages/detailsProduct'
 import MessageContainer from './components/messageContainer'
-import Busca from './pages/busca'
 import UserPage from './pages/userPage';
 import AdminPage from './pages/adminPage'
 import AdminRoute from './components/adminRoute';
 import CheckoutPage from './pages/checkoutPage'
+import SearchResult from './pages/searchResult'
 
 
 function App() {
@@ -21,7 +21,7 @@ function App() {
                 <Route path="login" element={<LoginPage />} />
                 <Route path="cadastro" element={<RegisterPage />} />
                 <Route path="sobre" element={<AboutPage />} />
-                <Route path="busca" element={<Busca />} />
+                <Route path="busca" element={<SearchResult />} />
                 <Route path="user/:id" element={<UserPage />} />
 
                 <Route

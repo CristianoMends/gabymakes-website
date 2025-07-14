@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import LoadingCircles from '../components/loading';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -78,15 +79,13 @@ export default function Banner() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen bg-gray-100 text-gray-700"> {/* h-screen aqui */}
-        Carregando banners...
-      </div>
+      <LoadingCircles />
     );
   }
 
   if (error) {
     return (
-      <div className="flex justify-center items-center h-screen bg-red-100 text-red-700"> {/* h-screen aqui */}
+      <div className="flex justify-center items-center h-screen bg-red-100 text-red-700">
         {error}
       </div>
     );
@@ -94,8 +93,8 @@ export default function Banner() {
 
   if (banners.length === 0) {
     return (
-      <div className="flex justify-center items-center h-screen bg-gray-100 text-gray-500"> {/* h-screen aqui */}
-        Nenhum banner disponível no momento.
+      <div className="flex justify-center items-center h-screen bg-gray-100 text-gray-500"> 
+
       </div>
     );
   }
@@ -103,29 +102,22 @@ export default function Banner() {
   const currentBanner = banners[currentIndex];
 
   return (
-    <div className="relative w-full overflow-hidden">
-      {/* AQUI ESTÁ A MUDANÇA PRINCIPAL: max-h-[...] foi trocado por h-screen */}
-      <div className="relative w-full h-screen max-h-[300px] flex items-center justify-center bg-gray-200">
+    <div className="relative w-full overflow-hidden my-10">
+      <div className="relative w-full h-screen max-h-[300px] flex items-center justify-center bg-white">
         <img
           key={fadeKey}
           src={currentBanner.imageUrl}
           alt={currentBanner.description}
-          className="w-full h-full object-cover object-center
+          className="w-full h-full object-contain object-center 
                                transition-opacity duration-700 ease-in-out opacity-100"
           loading="lazy"
         />
-
-        <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center p-4 opacity-0 hover:opacity-100 transition-opacity duration-300">
-          <p className="text-white text-center text-xl sm:text-2xl font-bold drop-shadow-md">
-            {currentBanner.description}
-          </p>
-        </div>
 
         {banners.length > 1 && (
           <>
             <button
               onClick={goToPrevious}
-              className="absolute left-4 top-1/2 -translate-y-1/2 bg-black bg-opacity-50 text-white p-3 rounded-full
+              className="cursor-pointer absolute left-4 top-1/2 -translate-y-1/2 bg-black bg-opacity-50 text-white p-3 rounded-full
                                     hover:bg-opacity-75 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-white"
               aria-label="Banner anterior"
             >
@@ -133,7 +125,7 @@ export default function Banner() {
             </button>
             <button
               onClick={goToNext}
-              className="absolute right-4 top-1/2 -translate-y-1/2 bg-black bg-opacity-50 text-white p-3 rounded-full
+              className="cursor-pointer absolute right-4 top-1/2 -translate-y-1/2 bg-black bg-opacity-50 text-white p-3 rounded-full
                                     hover:bg-opacity-75 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-white"
               aria-label="Próximo banner"
             >
