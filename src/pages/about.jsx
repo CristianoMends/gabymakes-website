@@ -1,16 +1,23 @@
-import React, { useEffect } from 'react';
 import HeaderVariant from '../components/header-variant';
 import Breadcrumb from '../components/breadcrumb';
 import Footer from '../components/footer';
 import profileImage from '../assets/logo-bg-transparent-1.png';
 
 export default function AboutPage() {
-    useEffect(() => {
-        document.title = 'Sobre Nós - GabyMakes';
-    }, []);
 
     return (
         <div className="bg-white min-h-screen">
+            <title>Sobre Nós | GabyMakes</title>
+            <meta name="description" content="Conheça a história por trás da nossa paixão por beleza prática e produtos feitos com carinho na GabyMakes." />
+            <link rel="canonical" href="https://gabymakes-website-git-develop-cristianos-projects-14338c05.vercel.app/about" />
+
+            <meta property="og:title" content="Sobre a GabyMakes: Nossa História" />
+            <meta property="og:description" content="Conheça a história por trás da nossa paixão por beleza e produtos selecionados com cuidado." />
+            <meta property="og:image" content="https://0x7zklkxioygivfm.public.blob.vercel-storage.com/web-app-manifest-512x512.png" />
+            <meta property="og:url" content="https://gabymakes-website-git-develop-cristianos-projects-14338c05.vercel.app/about" />
+            <meta property="og:type" content="website" />
+
+
             <HeaderVariant />
             <Breadcrumb />
             <main className="container mx-auto py-10 px-4 sm:px-6 lg:px-8">
@@ -28,7 +35,7 @@ export default function AboutPage() {
                         <img
                             className="h-48 w-full object-cover rounded-md"
                             src={profileImage}
-                            alt="Foto da Gaby"
+                            alt="Logo da GabyMakes"
                         />
                     </div>
                     <div className="mt-4 md:mt-0">
