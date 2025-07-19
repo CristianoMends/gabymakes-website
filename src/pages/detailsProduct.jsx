@@ -29,7 +29,6 @@ export default function ProductDetailPage() {
         const res = await fetch(`${API_BASE_URL}/products/${id}`);
         if (!res.ok) throw new Error('Produto não encontrado');
         const data = await res.json();
-        // converte preço string → número
         if (typeof data.price === 'string')
           data.price = parseFloat(data.price.replace(',', '.'));
         setProduct(data);
@@ -60,9 +59,9 @@ export default function ProductDetailPage() {
 
   /* ------------ adicionar à sacola ------------ */
   const handleAddToCart = async () => {
+    // ... (seu código handleAddToCart continua o mesmo)
     if (!product) return;
     if (userId) {
-      // usuário logado → API
       try {
         const res = await fetch(`${API_BASE_URL}/cart-item/add`, {
           method: 'POST',
@@ -83,7 +82,6 @@ export default function ProductDetailPage() {
         setMessage({ type: 'error', text: err.message });
       }
     } else {
-      // visitante → localStorage
       const cartString = localStorage.getItem('cart');
       const cart = cartString ? JSON.parse(cartString) : [];
       const item = cart.find(i => i.id === product.id);
@@ -102,13 +100,29 @@ export default function ProductDetailPage() {
     }
   };
 
-  /* ------------ UI ------------ */
   if (loading) return <LoadingCircles />;
   if (error) return <p className="text-red-600">{error}</p>;
-  if (!product) return null;
+  if (!product) return null; 
+
+  const seoDescription = product.description.length > 155
+    ? product.description.substring(0, 152) + '...'
+    : product.description;
 
   return (
     <div className="bg-white text-gray-800">
+      <title>{`${product.description.substring(0,15)} - ${product.brand} | GabyMakes`}</title>
+      <meta name="description" content={seoDescription} />
+      <link rel="canonical" href={`https://gabymakes-website-git-develop-cristianos-projects-14338c05.vercel.app/product/${product.id}`} />
+
+      <meta property="og:title" content={`${product.name} | GabyMakes`} />
+      <meta property="og:description" content={seoDescription} />
+      <meta property="og:image" content={product.imageUrl} />
+      <meta property="og:url" content={`https://gabymakes-website-git-develop-cristianos-projects-14338c05.vercel.app/product/${product.id}`} />
+      <meta property="og:type" content="product" />
+      <meta property="og:price:amount" content={product.price.toFixed(2)} />
+      <meta property="og:price:currency" content="BRL" />
+
+
       <Header />
       <main className="max-w-6xl mx-auto px-4 py-10">
         <Breadcrumb />
@@ -120,6 +134,7 @@ export default function ProductDetailPage() {
           />
           <div>
             <h1 className="text-2xl font-bold mb-2">{product.brand}</h1>
+            {/* Note que a descrição completa ainda é exibida para o usuário */}
             <p className="text-sm whitespace-pre-line mb-4">{product.description}</p>
             <p className="text-lg font-bold mb-2">
               R$ {product.price.toFixed(2).replace('.', ',')}
