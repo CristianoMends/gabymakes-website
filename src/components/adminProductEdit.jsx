@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { HiCheckCircle, HiXCircle } from "react-icons/hi";
-import { useParams } from "react-router-dom"; // Importa useParams para obter ID da URL
-import LoadingCircles from "../components/loading"; // Certifique-se de que o caminho está correto
-import Message from "../components/message";     // Certifique-se de que o caminho está correto
-import ConfirmationModal from "../components/confirmationModal"; // Certifique-se de que o caminho está correto
+import { useParams } from "react-router-dom";
+import LoadingCircles from "../components/loading";
+import Message from "../components/message";
+import ConfirmationModal from "../components/confirmationModal";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
@@ -22,7 +22,7 @@ const categories = [
 
 export default function AdminProductEdit({ id: propId, onEdit, onCancel }) {
   const { id: paramId } = useParams();
-  const id = propId ?? paramId; // Prioriza o ID passado via prop, senão pega da URL
+  const id = propId ?? paramId;
 
   const [form, setForm] = useState({
     description: "",
@@ -30,18 +30,19 @@ export default function AdminProductEdit({ id: propId, onEdit, onCancel }) {
     quantity: "",
     brand: "",
     category: "",
-    imageUrl: "", // Para exibir a imagem atual
+    imageUrl: "",
+    isActive: true
   });
-  const [selectedFile, setSelectedFile] = useState(null); // Para a nova imagem selecionada
-  const [analysis, setAnalysis] = useState(null); // Validação da nova imagem
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [analysis, setAnalysis] = useState(null);
 
-  const [loading, setLoading] = useState(true); // Indica se está carregando dados do produto
-  const [isSubmitting, setIsSubmitting] = useState(false); // Indica se está salvando as alterações
-  const [msg, setMsg] = useState(null); // Mensagens de feedback
-  const [showConfirm, setShowConfirm] = useState(false); // Visibilidade do modal de confirmação
-  const [confirming, setConfirming] = useState(false); // Estado de confirmação no modal
+  const [loading, setLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [msg, setMsg] = useState(null);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [confirming, setConfirming] = useState(false);
 
-  // Efeito para carregar os dados do produto ao montar o componente ou quando o ID muda
+
   useEffect(() => {
     if (!id) {
       setMsg({ type: "error", text: "ID do produto não informado para edição." });
@@ -59,10 +60,11 @@ export default function AdminProductEdit({ id: propId, onEdit, onCancel }) {
           quantity: String(data.quantity ?? ""),
           brand: data.brand ?? "",
           category: data.category ?? "",
-          imageUrl: data.imageUrl ?? "", // Define a imagem atual
+          imageUrl: data.imageUrl ?? "",
+          isActive: data.isActive ?? true
         });
-        setAnalysis(null); // Reseta a análise de imagem ao carregar novo produto
-        setSelectedFile(null); // Reseta o arquivo selecionado ao carregar novo produto
+        setAnalysis(null);
+        setSelectedFile(null);
       } catch (err) {
         console.error("Erro ao carregar dados do produto para edição:", err);
         setMsg({ type: "error", text: "Erro ao carregar dados do produto para edição." });
@@ -71,23 +73,23 @@ export default function AdminProductEdit({ id: propId, onEdit, onCancel }) {
       }
     };
     fetchProductData();
-  }, [id]); // Dependência no ID para recarregar se o produto a ser editado mudar
+  }, [id]);
 
   const handleChange = ({ target }) =>
     setForm((p) => ({ ...p, [target.name]: target.value }));
 
   const handleImageChange = ({ target }) => {
     const file = target.files?.[0];
-    setAnalysis(null); // Limpa análise anterior
-    setSelectedFile(null); // Limpa arquivo selecionado anterior
-    setForm((prev) => ({ ...prev, imageUrl: "" })); // Limpa preview se nenhum arquivo for válido
+    setAnalysis(null);
+    setSelectedFile(null);
+    setForm((prev) => ({ ...prev, imageUrl: "" }));
 
     if (!file) {
       return;
     }
 
     const validTypes = ["image/jpeg", "image/png"];
-    const maxSizeBytes = 6.1 * 1024 * 1024; // 6.1 MB
+    const maxSizeBytes = 6.1 * 1024 * 1024;
 
     const sizeOK = file.size <= maxSizeBytes;
     const typeOK = validTypes.includes(file.type);
@@ -108,12 +110,12 @@ export default function AdminProductEdit({ id: propId, onEdit, onCancel }) {
         fileType: file.type,
         fileSize: file.size,
       });
-      setSelectedFile(file); // Define o arquivo selecionado para upload
-      setForm((prev) => ({ ...prev, imageUrl: URL.createObjectURL(file) })); // Preview local
+      setSelectedFile(file);
+      setForm((prev) => ({ ...prev, imageUrl: URL.createObjectURL(file) }));
     };
     img.onerror = () => {
       setAnalysis(null);
-      setSelectedFile(null); // Em caso de erro, não use o arquivo
+      setSelectedFile(null);
       setMsg({ type: "error", text: "Não foi possível carregar a imagem para análise. Verifique o arquivo." });
     };
     img.src = URL.createObjectURL(file);
@@ -143,7 +145,7 @@ export default function AdminProductEdit({ id: propId, onEdit, onCancel }) {
       setMsg({ type: "error", text: "A categoria é obrigatória." });
       return false;
     }
-    // Validação da nova imagem, se uma foi selecionada
+
     if (selectedFile) {
       if (!analysis) {
         setMsg({ type: "error", text: "Aguarde a análise da nova imagem ou selecione outra." });
@@ -153,7 +155,7 @@ export default function AdminProductEdit({ id: propId, onEdit, onCancel }) {
         setMsg({ type: "error", text: "A nova imagem selecionada não atende aos requisitos. Por favor, corrija." });
         return false;
       }
-    } else if (!form.imageUrl) { // Se não há nova imagem e nem imagem pré-existente
+    } else if (!form.imageUrl) {
       setMsg({ type: "error", text: "O produto deve ter uma imagem. Por favor, adicione uma." });
       return false;
     }
@@ -163,11 +165,11 @@ export default function AdminProductEdit({ id: propId, onEdit, onCancel }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (loading || isSubmitting || confirming) return; // Impede múltiplos submits
+    if (loading || isSubmitting || confirming) return;
 
     if (!validateForm()) return;
 
-    setShowConfirm(true); // Abre o modal de confirmação
+    setShowConfirm(true);
   };
 
   const handleAuthError = () => {
@@ -179,15 +181,15 @@ export default function AdminProductEdit({ id: propId, onEdit, onCancel }) {
     }, 1500);
   };
 
-  const confirmSave = async () => { // Renomeado para evitar conflito com 'confirm' do modal
+  const confirmSave = async () => {
     if (confirming) return;
     setConfirming(true);
-    setIsSubmitting(true); // Indica que o salvamento está em andamento
+    setIsSubmitting(true);
 
     try {
-      let finalImageUrl = form.imageUrl; // Começa com a imagem atual ou preview da nova
+      let finalImageUrl = form.imageUrl;
 
-      if (selectedFile) { // Se um novo arquivo foi selecionado, faça o upload
+      if (selectedFile) {
         const fd = new FormData();
         fd.append("file", selectedFile);
 
@@ -204,10 +206,10 @@ export default function AdminProductEdit({ id: propId, onEdit, onCancel }) {
           throw new Error(errorData.message || "Falha no upload da nova imagem.");
         }
         const { url } = await uploadRes.json();
-        finalImageUrl = url; // Usa a URL da nova imagem
+        finalImageUrl = url;
       }
 
-      // Envia os dados do produto (PATCH)
+
       const productRes = await fetchJson(`${API_URL}/products/${id}`, {
         method: "PATCH",
         headers: {
@@ -216,19 +218,20 @@ export default function AdminProductEdit({ id: propId, onEdit, onCancel }) {
         },
         body: JSON.stringify({
           ...form,
-          imageUrl: finalImageUrl, // Usa a URL final da imagem
+          imageUrl: finalImageUrl,
           price: Number(form.price),
           quantity: Number(form.quantity),
+          isActive: form.isActive,
         }),
       });
 
-      if (!productRes.res.ok) { // Verifica a resposta do fetchJson
+      if (!productRes.res.ok) {
         throw new Error(productRes.data?.message || "Falha ao atualizar o produto.");
       }
 
       setMsg({ type: "success", text: "Produto atualizado com sucesso!" });
-      setShowConfirm(false); // Fecha o modal
-      onEdit?.(); // Chama a função de sucesso do componente pai
+      setShowConfirm(false);
+      onEdit?.();
     } catch (err) {
       if (err.status === 403) {
         handleAuthError();
@@ -241,8 +244,8 @@ export default function AdminProductEdit({ id: propId, onEdit, onCancel }) {
       });
     } finally {
       setConfirming(false);
-      setIsSubmitting(false); // Reseta o estado de salvamento
-      setShowConfirm(false); // Garante que o modal feche mesmo em erro
+      setIsSubmitting(false);
+      setShowConfirm(false);
     }
   };
 
@@ -267,7 +270,7 @@ export default function AdminProductEdit({ id: propId, onEdit, onCancel }) {
           message="Tem certeza que deseja salvar as alterações deste produto?"
           confirmText={confirming ? "Salvando..." : "Sim, Salvar"}
           cancelText="Cancelar"
-          onConfirm={confirmSave} // Chamada para a nova função confirmSave
+          onConfirm={confirmSave}
           onCancel={() => setShowConfirm(false)}
           disabled={confirming}
         />
@@ -372,21 +375,35 @@ export default function AdminProductEdit({ id: propId, onEdit, onCancel }) {
                   type="file"
                   accept="image/jpeg, image/png"
                   onChange={handleImageChange}
-                  className="block w-full text-sm text-gray-500
+                  className="block w-full rounded bg-pink-300 hover:bg-pink-400 text-sm text-gray-500
                                                file:mr-4 file:py-2 file:px-4 file:cursor-pointer
                                                file:rounded-full file:border-0
                                                file:text-sm file:font-semibold
-                                               file:bg-pink-50 file:text-pink-700
-                                               hover:file:bg-pink-100 cursor-pointer"
+                                               file:bg-transparent file:text-gray-900
+                                               hover:file:bg-pink-400 cursor-pointer"
                 />
               </label>
+
+              <label className="block mt-4">
+                <span className="block text-gray-700 text-sm font-semibold mb-1">Produto Ativo?</span>
+                <input
+                  type="checkbox"
+                  name="isActive"
+                  checked={form.isActive}
+                  onChange={(e) =>
+                    setForm((prev) => ({ ...prev, isActive: e.target.checked }))
+                  }
+                  className="w-5 h-5 text-pink-500 focus:ring-pink-400 border-gray-300 rounded"
+                />
+              </label>
+
 
               {/* Preview da Imagem Atual ou Nova */}
               {(form.imageUrl || selectedFile) && (
                 <div className="mt-2">
                   <span className="block text-sm text-gray-600 mb-1">Prévia da Imagem:</span>
                   <img
-                    src={form.imageUrl} // Exibe a URL atual do form (que pode ser a antiga ou o URL.createObjectURL da nova)
+                    src={form.imageUrl}
                     alt="Prévia do Produto"
                     className="h-32 w-32 object-cover rounded-lg border border-gray-200 shadow-sm"
                   />
@@ -457,10 +474,10 @@ export default function AdminProductEdit({ id: propId, onEdit, onCancel }) {
                 confirming ||
                 !form.description || !form.price || !form.quantity || !form.brand || !form.category ||
                 (selectedFile && (!analysis || !analysis.typeOK || !analysis.sizeOK || !analysis.minSizeOK || !analysis.ratioOK)) ||
-                (!selectedFile && !form.imageUrl) // Não permite salvar se não tem imagem
+                (!selectedFile && !form.imageUrl)
               }
-              className="bg-pink-500 text-white px-6 py-2 rounded-md font-semibold cursor-pointer
-                                       hover:bg-pink-600 transition-colors duration-200 shadow-md
+              className="bg-pink-300 text-gray-900 px-6 py-2 rounded-md font-semibold cursor-pointer
+                                       hover:bg-pink-400 transition-colors duration-200 shadow-md
                                        disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-pink-500
                                        focus:outline-none focus:ring-2 focus:ring-pink-400"
             >
@@ -484,7 +501,7 @@ async function fetchJson(url, options = {}) {
   let data = null;
   try {
     data = await res.clone().json();
-  } catch { } // Ignora erro se a resposta não for JSON
+  } catch { }
   if (!res.ok) {
     const err = new Error(data?.message || res.statusText);
     err.status = res.status;

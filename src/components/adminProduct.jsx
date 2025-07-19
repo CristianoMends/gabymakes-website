@@ -27,8 +27,8 @@ export default function AdminProduct({ page = "list" }) {
                             <h2 className="text-xl font-semibold text-gray-700 mb-4">Lista de Produtos</h2>
                             <button
                                 onClick={() => setCurrentPage("create")}
-                                className="bg-pink-400 text-white px-6 py-2 rounded-md self-start font-semibold
-                                   hover:bg-pink-500 cursor-pointer transition-colors duration-200
+                                className="bg-pink-300 text-gray-900 px-6 py-2 rounded-md self-start font-semibold
+                                   hover:bg-pink-400 cursor-pointer transition-colors duration-200
                                    disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-pink-500"
                             >
                                 Adicionar Novo Produto

@@ -1,14 +1,17 @@
 import { useState } from "react";
-import { FiBox, FiStar, FiImage, FiLogOut, FiHome } from "react-icons/fi"; // ⬅️ Importa ícone de sair
+import { FiBox, FiStar, FiImage, FiLogOut, FiHome } from "react-icons/fi"; 
 import logo from "../assets/logo-bg-transparent-1.png";
 import AdminProduct from "../components/adminProduct";
 import AdminHighlights from "../components/AdminHighlights";
-
+import BannerAdmin from "../components/bannerAdmin";
 import Message from "../components/message";
 import LoadingCircles from "../components/loading";
 import ConfirmationModal from "../components/confirmationModal";
+import useAuthRedirect from "../hooks/useAuthRedirect";
 
 export default function AdminPage() {
+    useAuthRedirect();
+
     const [page, setPage] = useState("products");
 
     const [loading, setLoading] = useState(false);
@@ -42,9 +45,9 @@ export default function AdminPage() {
             case "products":
                 return <AdminProduct page="list" />;
             case "highlights":
-                return <AdminHighlights/>;
+                return <AdminHighlights />;
             case "banners":
-                return <div className="p-4">Gestão de banners (em breve)</div>;
+                return <BannerAdmin />;
             default:
                 return <div className="p-4">Página não encontrada</div>;
         }

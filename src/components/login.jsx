@@ -1,14 +1,17 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FcGoogle } from "react-icons/fc";
 import { AiOutlineClose, AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
 import { useNavigate } from 'react-router-dom';
 import { useGoogleAuthService } from '../services/googleAuthService';
 import { showAppMessage } from './messageContainer';
 import LoadingCircles from './loading'
+import { useLocation } from "react-router-dom";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 const LoginPopup = () => {
+    const location = useLocation();
+
     const [isLoading, setIsLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [formData, setFormData] = useState({
@@ -29,6 +32,12 @@ const LoginPopup = () => {
     const handleCloseMessage = () => {
         setMessage(null);
     };
+
+    useEffect(() => {
+        if (location.state?.message) {
+            showAppMessage('error', location.state.message);
+        }
+    }, [location.state]);
 
     const handleGoogleLoginSuccess = async (credentialResponse) => {
 
