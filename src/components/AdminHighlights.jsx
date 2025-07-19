@@ -126,8 +126,8 @@ export default function AdminHighlights() {
 
                     <button
                         onClick={handleAdd}
-                        className="bg-pink-400 text-white px-6 py-2 rounded-md self-start font-semibold
-                                   hover:bg-pink-500 transition-colors duration-200
+                        className="bg-pink-300 cursor-pointer text-gray-900 px-6 py-2 rounded-md self-start font-semibold
+                                   hover:bg-pink-400 transition-colors duration-200
                                    disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-pink-500"
                         disabled={loading || !newHighlight.title || newHighlight.productId.length === 0}
                     >
@@ -149,7 +149,7 @@ export default function AdminHighlights() {
                                         onClick={() => handleRemove(h.id)}
                                         className="text-red-600 px-4 py-2 rounded-md border border-red-400
                                                    hover:bg-red-50 hover:text-red-700 transition-colors duration-200
-                                                   disabled:opacity-50 disabled:cursor-not-allowed"
+                                                   disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                                         disabled={loading}
                                     >
                                         Remover

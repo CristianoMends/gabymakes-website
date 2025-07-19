@@ -104,7 +104,7 @@ export default function RegisterPage() {
                     whatsapp: '',
                     gender: '',
                 });
-                navigate('/dashboard');
+                navigate('/login');
             } else {
 
                 

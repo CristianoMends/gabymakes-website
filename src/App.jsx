@@ -23,7 +23,6 @@ function App() {
                 <Route path="sobre" element={<AboutPage />} />
                 <Route path="busca" element={<SearchResult />} />
                 <Route path="user/:id" element={<UserPage />} />
-
                 <Route
                     path="admin"
                     element={

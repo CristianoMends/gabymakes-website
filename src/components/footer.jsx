@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 
 export default function Footer() {
     return (
-        <footer className="bg-white-100 border-t border-gray-300 text-black p-6 break-words mt-[200px]">
+        <footer className="bg-white-100 border-t border-gray-300 text-black p-10 break-words mt-[200px]">
             {/* Container principal para as colunas */}
             <div className="md:flex md:justify-between md:items-start mb-8">
                 {/* Logo e Descrição */}

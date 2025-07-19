@@ -58,7 +58,6 @@ export default function ProductPopup({ productId, isOpen, onClose }) {
         currency: "BRL",
     }).format(product?.price || 0);
 
-    // 🔒 Enquanto carrega, exibe apenas loading na tela inteira
     if (loading) {
         return createPortal(
             <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/50">
