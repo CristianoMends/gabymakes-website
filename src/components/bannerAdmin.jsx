@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import ProductCard from "../components/ProductCard";
 import { HiCheckCircle, HiXCircle } from "react-icons/hi";
 import LoadingCircles from "../components/loading";
 import Message from "../components/message";
