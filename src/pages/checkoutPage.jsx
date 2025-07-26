@@ -282,64 +282,56 @@ export default function CheckoutPage() {
         );
     };
 
+    document.title = 'Checkout'
 
     return (
-        <div className=" mx-auto space-y-6 font-sans">
+        <div className="font-sans space-y-8 min-h-screen bg-white text-zinc-800">
             {loading && <LoadingCircles />}
-
             {message && (
-                <Message
-                    type={message.type}
-                    message={message.text}
-                    onClose={() => setMessage(null)}
-                />
+                <Message type={message.type} message={message.text} onClose={() => setMessage(null)} />
             )}
 
             <HeaderVariant />
 
             {/* --- Endereço + Resumo --- */}
-            <div className="p-6 flex flex-col md:flex-row md:justify-between gap-6">
-                <section className="border rounded p-6 flex-1 max-w-md shadow">
-                    <h2 className="font-bold mb-2">Endereço de entrega</h2>
-
+            <div className="flex flex-col md:flex-row md:justify-between gap-6 p-6 bg-zinc-50 border border-zinc-200 rounded shadow">
+                <section className="flex-1 max-w-md bg-white p-6 rounded shadow">
+                    <h2 className="text-2xl font-semibold mb-4">Endereço de entrega</h2>
                     {selected ? (
                         <>
-                            <p>
-                                {selected.user?.name} {selected.user?.phone}
-                            </p>
-                            <p className="text-sm text-gray-600">
-                                {selected.street}, {selected.city} - {selected.state},{' '}
-                                {selected.zipCode}
+                            <p className="text-lg font-medium">{selected.user?.name} {selected.user?.phone}</p>
+                            <p className="text-sm text-zinc-600">
+                                {selected.street}, {selected.city} - {selected.state}, {selected.zipCode}
                             </p>
                         </>
                     ) : (
-                        <p className="text-sm text-gray-500">Nenhum endereço cadastrado.</p>
+                        <p className="text-sm text-zinc-500">Nenhum endereço cadastrado.</p>
                     )}
-
                     <button
                         onClick={() => setShowModal(true)}
-                        className="mt-4 bg-pink-300 text-black px-4 py-2 rounded hover:bg-pink-400 font-semibold transition"
+                        className="mt-6 bg-pink-300 hover:bg-pink-400 text-black px-5 py-2 rounded font-semibold transition cursor-pointer"
                     >
                         Alterar
                     </button>
                 </section>
 
-                <section className="border rounded p-6 max-w-xs shadow flex flex-col justify-between">
-                    <h2 className="font-bold mb-4">Resumo</h2>
-                    <div className="flex justify-between text-lg font-semibold">
+                <section className="max-w-xs bg-white p-6 rounded shadow flex flex-col justify-between">
+                    <h2 className="text-2xl font-semibold mb-6">Resumo</h2>
+                    <div className="flex justify-between text-lg font-semibold mb-1">
                         <span>Total</span>
-                        <span>R$ {total.toFixed(2)}</span>
+                        <span>R$ {total.toFixed(2).replace('.', ',')}</span>
                     </div>
-                    <p className="text-xs text-gray-600 mt-1 mb-4">
-                        ou 3x de R$ {(total / 3).toFixed(2)} sem juros
-                    </p>
+                    {/*<p className="text-xs text-zinc-600 mb-6">ou 3x de R$ {(total / 3).toFixed(2).replace('.', ',')} sem juros</p>*/}
                     <button
                         onClick={finalizarPedido}
-                        className="cursor-pointer mb-3 bg-pink-300 text-black px-4 py-2 rounded hover:bg-pink-400 font-semibold transition"
+                        className="mb-3 bg-pink-300 hover:bg-pink-400 text-black px-5 py-2 rounded font-semibold transition cursor-pointer"
                     >
                         Finalizar pedido
                     </button>
-                    <button onClick={finalizarViaWhatsapp} className="cursor-pointer bg-pink-300 text-black px-4 py-2 rounded hover:bg-pink-400 font-semibold transition">
+                    <button
+                        onClick={finalizarViaWhatsapp}
+                        className="bg-pink-300 hover:bg-pink-400 text-black px-5 py-2 rounded font-semibold transition cursor-pointer"
+                    >
                         Finalizar via WhatsApp
                     </button>
                 </section>
@@ -347,24 +339,23 @@ export default function CheckoutPage() {
 
             {/* --- Modal de endereços --- */}
             {showModal && (
-                <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center">
+                <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
                     <div className="bg-white rounded-lg shadow-lg w-full max-w-lg p-6 relative">
                         <button
                             onClick={() => setShowModal(false)}
-                            className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
+                            className="absolute top-3 right-3 text-zinc-500 hover:text-zinc-700"
                         >
                             <HiX size={24} />
                         </button>
 
-                        {/* lista */}
-                        <h3 className="font-semibold mb-4">Meus endereços</h3>
+                        <h3 className="text-xl font-semibold mb-4">Meus endereços</h3>
                         <ul className="space-y-2 max-h-40 overflow-auto">
                             {addresses.map((addr) => (
                                 <li
                                     key={addr.id}
                                     className="border rounded p-3 flex justify-between items-start"
                                 >
-                                    <label className="flex-1 cursor-pointer">
+                                    <label className="flex-1 cursor-pointer text-zinc-800">
                                         <input
                                             type="radio"
                                             checked={selected?.id === addr.id}
@@ -383,23 +374,20 @@ export default function CheckoutPage() {
                             ))}
                         </ul>
 
-                        {/* form novo endereço */}
-                        <h4 className="font-semibold mt-6 mb-2">Adicionar endereço</h4>
-                        <form onSubmit={handleAdd} className="grid grid-cols-2 gap-3 text-sm">
+                        <h4 className="text-lg font-semibold mt-6 mb-3">Adicionar endereço</h4>
+                        <form onSubmit={handleAdd} className="grid grid-cols-2 gap-4 text-sm">
                             <input
                                 required
                                 placeholder="Rua ex. Av. Paulista, 123"
                                 value={form.street}
                                 onChange={(e) => setForm({ ...form, street: e.target.value })}
-                                className="col-span-2 border rounded p-2"
+                                className="col-span-2 border border-zinc-300 rounded p-2 focus:outline-pink-400"
                             />
-
-                            {/* select de estado */}
                             <select
                                 required
                                 value={form.state}
                                 onChange={(e) => setForm({ ...form, state: e.target.value })}
-                                className="border rounded p-2"
+                                className="border border-zinc-300 rounded p-2 focus:outline-pink-400"
                             >
                                 <option value="">Selecione o Estado</option>
                                 {estados.map((e) => (
@@ -408,14 +396,12 @@ export default function CheckoutPage() {
                                     </option>
                                 ))}
                             </select>
-
-                            {/* select de cidade */}
                             <select
                                 required
                                 value={form.city}
                                 onChange={(e) => setForm({ ...form, city: e.target.value })}
                                 disabled={!form.state}
-                                className="border rounded p-2"
+                                className="border border-zinc-300 rounded p-2 focus:outline-pink-400"
                             >
                                 <option value="">
                                     {form.state ? 'Selecione a Cidade' : 'Selecione um Estado primeiro'}
@@ -426,19 +412,16 @@ export default function CheckoutPage() {
                                     </option>
                                 ))}
                             </select>
-
-                            {/* input de CEP continua */}
                             <input
                                 required
                                 placeholder="CEP ex. 12345-678"
                                 value={form.zipCode}
                                 onChange={(e) => setForm({ ...form, zipCode: e.target.value })}
-                                className="col-span-2 border rounded p-2"
+                                className="col-span-2 border border-zinc-300 rounded p-2 focus:outline-pink-400"
                             />
-
                             <button
                                 type="submit"
-                                className="cursor-pointer col-span-2 bg-pink-300 text-black py-2 rounded hover:bg-pink-400 font-semibold"
+                                className="col-span-2 bg-pink-300 hover:bg-pink-400 text-black py-2 rounded font-semibold cursor-pointer transition"
                             >
                                 Salvar endereço
                             </button>
@@ -447,8 +430,9 @@ export default function CheckoutPage() {
                 </div>
             )}
 
-            <section className="border mx-6 my-6 rounded p-6 shadow">
-                <h2 className="font-bold mb-4">Produtos ({produtos.length})</h2>
+            {/* --- Produtos no carrinho --- */}
+            <section className="bg-zinc-50 border border-zinc-200 rounded p-6 shadow mx-6">
+                <h2 className="text-xl font-semibold mb-4">Produtos ({produtos.length})</h2>
                 {produtos.map((p) => (
                     <div
                         key={p.id}
@@ -460,29 +444,29 @@ export default function CheckoutPage() {
                             className="w-20 h-20 object-contain rounded"
                         />
                         <div className="flex-1">
-                            <p className="text-sm">{p.nome}</p>
+                            <p className="text-zinc-800 text-sm">{p.nome}</p>
                             <p className="font-semibold mt-1">
                                 R$ {p.preco.toFixed(2).replace('.', ',')}
                             </p>
                         </div>
                         <div className="flex items-center gap-2 border rounded px-2 py-1">
                             <button
-                                onClick={() => alterarQuantidade(p.id, - 1)}
-                                className="text-pink-500 hover:text-pink-700"
+                                onClick={() => alterarQuantidade(p.id, -1)}
+                                className="text-pink-500 hover:text-pink-700 cursor-pointer"
                             >
                                 <HiMinus />
                             </button>
                             <span>{p.quantidade}</span>
                             <button
                                 onClick={() => alterarQuantidade(p.id, 1)}
-                                className="text-pink-500 hover:text-pink-700"
+                                className="text-pink-500 hover:text-pink-700 cursor-pointer"
                             >
                                 <HiPlus />
                             </button>
                         </div>
                         <button
                             onClick={() => removerProduto(p.id)}
-                            className="text-gray-400 hover:text-red-500"
+                            className="text-gray-400 hover:text-red-500 cursor-pointer"
                             aria-label="Remover produto"
                         >
                             <HiTrash size={20} />
@@ -490,7 +474,8 @@ export default function CheckoutPage() {
                     </div>
                 ))}
             </section>
-            <Footer/>
+
+            <Footer />
         </div>
     );
 }
