@@ -31,7 +31,8 @@ export default function AdminProductEdit({ id: propId, onEdit, onCancel }) {
     brand: "",
     category: "",
     imageUrl: "",
-    isActive: true
+    isActive: true,
+    discount: ""
   });
   const [selectedFile, setSelectedFile] = useState(null);
   const [analysis, setAnalysis] = useState(null);
@@ -61,7 +62,8 @@ export default function AdminProductEdit({ id: propId, onEdit, onCancel }) {
           brand: data.brand ?? "",
           category: data.category ?? "",
           imageUrl: data.imageUrl ?? "",
-          isActive: data.isActive ?? true
+          isActive: data.isActive ?? true,
+          discount: String(data.discount ?? "")
         });
         setAnalysis(null);
         setSelectedFile(null);
@@ -97,7 +99,7 @@ export default function AdminProductEdit({ id: propId, onEdit, onCancel }) {
     const img = new Image();
     img.onload = () => {
       const { width, height } = img;
-      const minSizeOK = width >= 500 && height >= 500;
+      const minSizeOK = width >= 400 && height >= 400;
       const ratioOK = Math.abs(width - height) / Math.max(width, height) <= 0.1;
 
       setAnalysis({
@@ -124,15 +126,25 @@ export default function AdminProductEdit({ id: propId, onEdit, onCancel }) {
   const validateForm = () => {
     const price = Number(form.price);
     const quantity = Number(form.quantity);
+    const discount = Number(form.discount);
 
     if (!form.description.trim()) {
       setMsg({ type: "error", text: "A descrição é obrigatória." });
+      return false;
+    }
+    if (form.description.length > 500) {
+      setMsg({ type: "error", text: "A descrição não pode ter mais de 500 caracteres." });
       return false;
     }
     if (isNaN(price) || price <= 0) {
       setMsg({ type: "error", text: "Informe um preço válido (maior que zero)." });
       return false;
     }
+    if (isNaN(discount) || discount < 0 || discount > 100) {
+      setMsg({ type: "error", text: "Informe um valor de desconto válido (entre 0% e 100%)." });
+      return false;
+    }
+
     if (isNaN(quantity) || !Number.isInteger(quantity) || quantity < 0) {
       setMsg({ type: "error", text: "Informe uma quantidade válida (número inteiro não negativo)." });
       return false;
@@ -221,6 +233,7 @@ export default function AdminProductEdit({ id: propId, onEdit, onCancel }) {
           imageUrl: finalImageUrl,
           price: Number(form.price),
           quantity: Number(form.quantity),
+          discount: Number(form.discount),
           isActive: form.isActive,
         }),
       });
@@ -279,10 +292,10 @@ export default function AdminProductEdit({ id: propId, onEdit, onCancel }) {
       {!loading && (
         <form
           onSubmit={handleSubmit}
-          className="p-6 bg-white rounded-lg shadow-lg border border-gray-200 max-w-4xl mx-auto"
+          className="bg-white rounded-lg mx-auto"
         >
           <div className="grid md:grid-cols-2 gap-6 mb-6">
-            {/* Coluna Esquerda: Descrição, Preço, Quantidade */}
+
             <div className="flex flex-col gap-4">
               <label className="block">
                 <span className="block text-gray-700 text-sm font-semibold mb-1">Descrição do Produto</span>
@@ -294,45 +307,65 @@ export default function AdminProductEdit({ id: propId, onEdit, onCancel }) {
                   className="block w-full p-3 border border-gray-300 rounded-md shadow-sm
                                                focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent
                                                text-gray-700 placeholder-gray-400 h-full min-h-[120px] resize-y"
+                  maxLength="500"
                   required
                 />
               </label>
 
-              <label className="block">
-                <span className="block text-gray-700 text-sm font-semibold mb-1 mt-5">Preço (R$)</span>
-                <input
-                  type="number"
-                  name="price"
-                  value={form.price}
-                  onChange={handleChange}
-                  placeholder="Ex: 99.90"
-                  className="block w-full p-3 border border-gray-300 rounded-md shadow-sm
-                                               focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent
-                                               text-gray-700 placeholder-gray-400"
-                  step="0.01"
-                  min="0"
-                  required
-                />
-              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-5">
+                <label className="block">
+                  <span className="block text-gray-700 text-sm font-semibold mb-1">Preço (R$)</span>
+                  <input
+                    type="number"
+                    name="price"
+                    value={form.price}
+                    onChange={handleChange}
+                    placeholder="Ex: 99.90"
+                    className="block w-full p-3 border border-gray-300 rounded-md shadow-sm
+        focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent
+        text-gray-700 placeholder-gray-400"
+                    step="0.01"
+                    min="0"
+                    required
+                  />
+                </label>
 
-              <label className="block">
-                <span className="block text-gray-700 text-sm font-semibold mb-1">Quantidade disponível</span>
-                <input
-                  type="number"
-                  name="quantity"
-                  value={form.quantity}
-                  onChange={handleChange}
-                  placeholder="Ex: 100"
-                  className="block w-full p-3 border border-gray-300 rounded-md shadow-sm
-                                               focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent
-                                               text-gray-700 placeholder-gray-400"
-                  min="0"
-                  required
-                />
-              </label>
+                <label className="block">
+                  <span className="block text-gray-700 text-sm font-semibold mb-1">Desconto (%)</span>
+                  <input
+                    type="number"
+                    name="discount"
+                    value={form.discount}
+                    onChange={handleChange}
+                    placeholder="Ex: 10"
+                    className="block w-full p-3 border border-gray-300 rounded-md shadow-sm
+        focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent
+        text-gray-700 placeholder-gray-400"
+                    step="0.01"
+                    min="0"
+                    max="100"
+                  />
+                </label>
+
+                <label className="block">
+                  <span className="block text-gray-700 text-sm font-semibold mb-1">Quantidade disponível</span>
+                  <input
+                    type="number"
+                    name="quantity"
+                    value={form.quantity}
+                    onChange={handleChange}
+                    placeholder="Ex: 100"
+                    className="block w-full p-3 border border-gray-300 rounded-md shadow-sm
+        focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent
+        text-gray-700 placeholder-gray-400"
+                    min="0"
+                    required
+                  />
+                </label>
+              </div>
+
             </div>
 
-            {/* Coluna Direita: Marca, Categoria, Imagem */}
             <div className="flex flex-col gap-4">
               <label className="block">
                 <span className="block text-gray-700 text-sm font-semibold mb-1">Marca</span>
@@ -396,59 +429,62 @@ export default function AdminProductEdit({ id: propId, onEdit, onCancel }) {
                   className="w-5 h-5 text-pink-500 focus:ring-pink-400 border-gray-300 rounded"
                 />
               </label>
-
-
-              {/* Preview da Imagem Atual ou Nova */}
-              {(form.imageUrl || selectedFile) && (
-                <div className="mt-2">
-                  <span className="block text-sm text-gray-600 mb-1">Prévia da Imagem:</span>
-                  <img
-                    src={form.imageUrl}
-                    alt="Prévia do Produto"
-                    className="h-32 w-32 object-cover rounded-lg border border-gray-200 shadow-sm"
-                  />
-                </div>
-              )}
-
-              {/* Diagnóstico da Imagem */}
-              {analysis && (
-                <div className="mt-4 p-4 border border-gray-200 rounded-lg bg-gray-50 shadow-sm">
-                  <p className="text-sm font-semibold text-gray-700 mb-2">
-                    Diagnóstico da imagem selecionada:
-                  </p>
-                  <ul className="text-sm space-y-1">
-                    <li className={`flex items-center gap-2 ${analysis.typeOK ? "text-green-700" : "text-red-700"}`}>
-                      {analysis.typeOK ? (<HiCheckCircle className="text-green-500" />) : (<HiXCircle className="text-red-500" />)}
-                      <span>
-                        Formato <strong>{analysis.fileType}</strong> {analysis.typeOK ? "suportado (JPG ou PNG)" : "não suportado (use JPG ou PNG)"}
-                      </span>
-                    </li>
-                    <li className={`flex items-center gap-2 ${analysis.sizeOK ? "text-green-700" : "text-red-700"}`}>
-                      {analysis.sizeOK ? (<HiCheckCircle className="text-green-500" />) : (<HiXCircle className="text-red-500" />)}
-                      <span>
-                        Tamanho <strong>{(analysis.fileSize / 1024 / 1024).toFixed(2)} MB</strong> {analysis.sizeOK ? "(OK)" : "(excede 6 MB)"}
-                      </span>
-                    </li>
-                    <li className={`flex items-center gap-2 ${analysis.minSizeOK ? "text-green-700" : "text-red-700"}`}>
-                      {analysis.minSizeOK ? (<HiCheckCircle className="text-green-500" />) : (<HiXCircle className="text-red-500" />)}
-                      <span>
-                        Dimensão mínima 500×500 px ({analysis.width}×{analysis.height}) {analysis.minSizeOK ? "(OK)" : "(muito pequena)"}
-                      </span>
-                    </li>
-                    <li className={`flex items-center gap-2 ${analysis.ratioOK ? "text-green-700" : "text-red-700"}`}>
-                      {analysis.ratioOK ? (<HiCheckCircle className="text-green-500" />) : (<HiXCircle className="text-red-500" />)}
-                      <span>Proporção próxima de quadrado {analysis.ratioOK ? "(OK)" : "(desproporcional)"}</span>
-                    </li>
-                  </ul>
-                  {(!analysis.typeOK || !analysis.sizeOK || !analysis.minSizeOK || !analysis.ratioOK) && (
-                    <p className="mt-3 text-red-600 text-sm font-medium">Por favor, corrija os problemas da imagem antes de salvar.</p>
-                  )}
-                </div>
-              )}
-              {selectedFile && !analysis && (
-                <p className="mt-2 text-gray-500 text-sm">Analisando imagem...</p>
-              )}
             </div>
+          </div>
+
+          <div className="flex flex-col justify-between items-center w-full">
+            {/* Preview da Imagem Atual ou Nova */}
+            {(form.imageUrl || selectedFile) && (
+              <div className="mt-2">
+                <span className="block text-sm text-gray-600 mb-1">Prévia da Imagem:</span>
+                <img
+                  src={form.imageUrl}
+                  alt="Prévia do Produto"
+                  className="h-64 w-64 object-fit"
+                />
+              </div>
+            )}
+
+            {/* Diagnóstico da Imagem */}
+            {analysis && (
+              <div className="mt-4 p-4 border border-gray-200 rounded-lg bg-gray-50 shadow-sm">
+                <p className="text-sm font-semibold text-gray-700 mb-2">
+                  Diagnóstico da imagem selecionada:
+                </p>
+                <ul className="text-sm space-y-1">
+                  <li className={`flex items-center gap-2 ${analysis.typeOK ? "text-green-700" : "text-red-700"}`}>
+                    {analysis.typeOK ? (<HiCheckCircle className="text-green-500" />) : (<HiXCircle className="text-red-500" />)}
+                    <span>
+                      Formato <strong>{analysis.fileType}</strong> {analysis.typeOK ? "suportado (JPG ou PNG)" : "não suportado (use JPG ou PNG)"}
+                    </span>
+                  </li>
+                  <li className={`flex items-center gap-2 ${analysis.sizeOK ? "text-green-700" : "text-red-700"}`}>
+                    {analysis.sizeOK ? (<HiCheckCircle className="text-green-500" />) : (<HiXCircle className="text-red-500" />)}
+                    <span>
+                      Tamanho <strong>{(analysis.fileSize / 1024 / 1024).toFixed(2)} MB</strong> {analysis.sizeOK ? "(OK)" : "(excede 6 MB)"}
+                    </span>
+                  </li>
+                  <li className={`flex items-center gap-2 ${analysis.minSizeOK ? "text-green-700" : "text-red-700"}`}>
+                    {analysis.minSizeOK ? (<HiCheckCircle className="text-green-500" />) : (<HiXCircle className="text-red-500" />)}
+                    <span>
+                      Dimensão mínima 400×400 px ({analysis.width}×{analysis.height}) {analysis.minSizeOK ? "(OK)" : "(muito pequena)"}
+                    </span>
+                  </li>
+                  <li className={`flex items-center gap-2 ${analysis.ratioOK ? "text-green-700" : "text-red-700"}`}>
+                    {analysis.ratioOK ? (<HiCheckCircle className="text-green-500" />) : (<HiXCircle className="text-red-500" />)}
+                    <span>Proporção próxima de quadrado {analysis.ratioOK ? "(OK)" : "(desproporcional)"}</span>
+                  </li>
+                </ul>
+                {(!analysis.typeOK || !analysis.sizeOK || !analysis.minSizeOK || !analysis.ratioOK) && (
+                  <p className="mt-3 text-red-600 text-sm font-medium">Por favor, corrija os problemas da imagem antes de salvar.</p>
+                )}
+              </div>
+            )}
+
+            {selectedFile && !analysis && (
+              <p className="mt-2 text-gray-500 text-sm">Analisando imagem...</p>
+            )}
+
           </div>
 
           {/* Botões de Ação */}
@@ -472,7 +508,7 @@ export default function AdminProductEdit({ id: propId, onEdit, onCancel }) {
                 loading ||
                 isSubmitting ||
                 confirming ||
-                !form.description || !form.price || !form.quantity || !form.brand || !form.category ||
+                !form.description || form.description.length > 500 || !form.price || !form.quantity || !form.brand || !form.category ||
                 (selectedFile && (!analysis || !analysis.typeOK || !analysis.sizeOK || !analysis.minSizeOK || !analysis.ratioOK)) ||
                 (!selectedFile && !form.imageUrl)
               }

@@ -13,12 +13,8 @@ export default function BannerAdmin() {
     const [uploading, setUploading] = useState(false);
     const [fileAnalysis, setFileAnalysis] = useState(null);
     const [previewImage, setPreviewImage] = useState(null);
-
     const [selectedFile, setSelectedFile] = useState(null);
-
-
     const [msg, setMsg] = useState(null);
-
     const [showConfirm, setShowConfirm] = useState(false);
     const [confirming, setConfirming] = useState(false);
     const [confirmAction, setConfirmAction] = useState(null);
@@ -135,7 +131,7 @@ export default function BannerAdmin() {
             const minSizeOK = width >= 500 && height >= 500;
             const bannerRatio = 1920 / 720;
             const actualRatio = width / height;
-            const ratioOK = Math.abs(actualRatio - bannerRatio) <= 0.5;
+            const ratioOK = Math.abs(actualRatio - bannerRatio) <= 0.9;
 
             const analysis = {
                 width,
@@ -174,6 +170,8 @@ export default function BannerAdmin() {
 
 
     return (
+        document.title = "Gerenciar Banners | GabyMakes Admin",
+
         <div className="container mx-auto p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen">
             {(loading || uploading) && <LoadingCircles className="mb-4" />}
 
@@ -201,7 +199,7 @@ export default function BannerAdmin() {
             <h2 className="text-3xl font-extrabold text-gray-800 mb-6 text-center">Gerenciar Banners</h2>
 
             <div className="bg-white rounded-lg shadow-lg mb-8 border border-gray-200 flex flex-col gap-4 p-6">
-                <h3 className="text-xl font-semibold text-gray-700 mb-4">Adicionar Nova Seção</h3>
+                <h3 className="text-xl font-semibold text-gray-700 mb-4">Adicionar Novo Banner</h3>
                 <div className="flex flex-col gap-4 md:flex-row md:items-end">
 
                     <input

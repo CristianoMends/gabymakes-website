@@ -27,7 +27,7 @@ export default function Message({ type, message, onClose }) {
                 {onClose && (
                     <button
                         onClick={onClose}
-                        className="p-1 rounded-full hover:bg-opacity-75 focus:outline-none focus:ring-2 focus:ring-offset-2"
+                        className="p-1 rounded-full hover:bg-opacity-75 cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2"
                         style={{
                             backgroundColor:
                                 type === 'success'

@@ -135,7 +135,7 @@ export default function SearchResult() {
                     <Breadcrumb />
 
                     <h1 className="text-2xl font-bold text-gray-800 mb-6">
-                        Você buscou por: <span className="italic font-normal text-pink-600">"{initialQuery}"</span>
+                        Você buscou por: <span className="italic font-normal text-pink-600">"{initialQuery.replaceAll('_', ' ')}"</span>
                     </h1>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center mb-8 p-4 border-y border-gray-200 bg-gray-50 rounded-md shadow-sm">

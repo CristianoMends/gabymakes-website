@@ -1,4 +1,7 @@
 import { useState, useEffect } from "react";
+import LoadingCircles from "../components/loading";
+import ConfirmationModal from "../components/confirmationModal";
+import Message from "../components/message";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
@@ -7,6 +10,12 @@ export default function AdminHighlights() {
     const [newHighlight, setNewHighlight] = useState({ title: "", productId: [] });
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [confirmTitle, setConfirmTitle] = useState("");
+    const [confirmMessage, setConfirmMessage] = useState("");
+    const [showConfirm, setShowConfirm] = useState(false);
+    const [msg, setMsg] = useState(null);
+    const [confirmAction, setConfirmAction] = useState(null);
+    const [confirming, setConfirming] = useState(false);
 
     useEffect(() => {
         fetch(`${API_URL}/products`)
@@ -14,6 +23,13 @@ export default function AdminHighlights() {
             .then(data => setProducts(data))
             .catch(() => setProducts([]));
     }, []);
+
+    function openConfirmation({ title, message, onConfirm }) {
+        setConfirmTitle(title);
+        setConfirmMessage(message);
+        setConfirmAction(() => onConfirm);
+        setShowConfirm(true);
+    }
 
     const handleAdd = async () => {
         if (!newHighlight.title || newHighlight.productId.length === 0) return;
@@ -38,18 +54,28 @@ export default function AdminHighlights() {
     };
 
     const handleRemove = async (id) => {
-        setLoading(true);
-        try {
-            await fetch(`${API_URL}/sections/${id}`, {
-                method: "DELETE",
-                headers: getAuthHeaders()
-            });
-            setHighlights(highlights.filter(h => h.id !== id));
-        } catch (err) {
-            alert("Erro ao remover destaque.");
-        } finally { // Use finally para garantir que o loading seja sempre resetado
-            setLoading(false);
-        }
+        openConfirmation({
+            title: "Remover destaque?",
+            message: "Tem certeza de que deseja remover este destaque?",
+            onConfirm: async () => {
+                setLoading(true);
+                setShowConfirm(false);
+                try {
+                    await fetch(`${API_URL}/sections/${id}`, {
+                        method: "DELETE",
+                        headers: getAuthHeaders()
+                    });
+                    setHighlights(highlights.filter(h => h.id !== id));
+                    setMsg({ type: "success", text: "Destaque removido com sucesso." });
+                } catch (err) {
+                    setMsg({ type: "error", text: "Erro ao remover destaque." });
+                } finally {
+                    setShowConfirm(false);
+                    setConfirming(false);
+                    setLoading(false);
+                }
+            }
+        });
     };
 
     const handleProductCheck = (id) => {
@@ -72,9 +98,30 @@ export default function AdminHighlights() {
     }, []);
 
     return (
-        <div className="container mx-auto p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen">
-            <h2 className="text-3xl font-extrabold text-gray-800 mb-6 text-center">Gerenciar Seções de Destaque</h2>
+        document.title = "Gerenciar Destaques | GabyMakes Admin",
 
+        <div className="container mx-auto p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen">
+            <h2 className="text-3xl font-extrabold text-gray-800 mb-6 text-center">Gerenciar Destaques</h2>
+            {(loading) && <LoadingCircles className="mb-4" />}
+
+            {showConfirm && (
+                <ConfirmationModal
+                    title={confirmTitle}
+                    message={confirmMessage}
+                    confirmText={confirming ? "Processando..." : "Confirmar"}
+                    cancelText="Cancelar"
+                    onConfirm={confirmAction}
+                    onCancel={() => setShowConfirm(false)}
+                    disabled={confirming}
+                />
+            )}
+
+            {msg && <Message
+                type={msg.type}
+                message={msg.text}
+                onClose={() => setMsg(null)}
+            />
+            }
             {/* Seção para Adicionar Novo Destaque */}
             <div className="bg-white p-6 rounded-lg shadow-lg mb-8 border border-gray-200">
                 <h3 className="text-xl font-semibold text-gray-700 mb-4">Adicionar Nova Seção</h3>
@@ -90,7 +137,7 @@ export default function AdminHighlights() {
 
                     <div className="border border-gray-300 rounded-md p-4 bg-gray-50 max-h-80 overflow-y-auto shadow-inner">
                         <p className="text-gray-600 font-medium mb-3">Selecione os produtos para esta seção:</p>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-2 gap-4">
                             {products.length > 0 ? (
                                 products.map(prod => (
                                     <label
@@ -131,7 +178,7 @@ export default function AdminHighlights() {
                                    disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-pink-500"
                         disabled={loading || !newHighlight.title || newHighlight.productId.length === 0}
                     >
-                        {loading ? "Adicionando..." : "Adicionar Seção"}
+                        {(loading && newHighlight.title) ? "Adicionando..." : "Adicionar Seção"}
                     </button>
                 </div>
             </div>

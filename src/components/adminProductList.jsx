@@ -69,7 +69,7 @@ export default function AdminProductList({ onEdit }) {
   }, []);
 
   return (
-    <div className="bg-[#fafafa] p-6">
+    <div className="bg-[#fafafa]">
       {loading && <LoadingCircles className="mb-4" />}
       {msg && (
         <Message
@@ -79,7 +79,7 @@ export default function AdminProductList({ onEdit }) {
         />
       )}
 
-      <div className="bg-white rounded-lg shadow p-4 overflow-x-auto">
+      <div className="bg-white p-4 overflow-x-auto">
         <div className="mb-4 flex gap-4">
           <input
             type="text"
@@ -99,76 +99,68 @@ export default function AdminProductList({ onEdit }) {
           </select>
           <button
             onClick={fetchProducts}
-            className="bg-pink-300 text-white px-4 py-1 rounded cursor-pointer hover:bg-pink-400 transition-colors duration-200"
+            className="bg-pink-300 text-black px-4 py-1 rounded cursor-pointer hover:bg-pink-400 transition-colors duration-200"
           >
             Buscar
           </button>
         </div>
-
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr>
-              <th className="py-2 px-3">Foto</th>
-              <th className="px-3">Nome do Produto</th>
-              <th className="px-3">Quantidade</th>
-              <th className="px-3">Ativo</th>
-              <th className="px-3">Editar</th>
-              <th className="px-3">Excluir</th>
-            </tr>
-          </thead>
-          <tbody>
-            {products.map((product) => (
-              <tr key={product.id} className="hover:bg-gray-50 transition-colors">
-                <td className="py-2 px-3">
-                  <img
-                    src={product.imageUrl}
-                    alt={product.description}
-                    className="w-12 h-12 object-cover rounded cursor-pointer"
-                    onClick={() => {
-                      setIdSelecionado(product.id);
-                      setOpen(true);
-                    }}
-                  />
-                </td>
-                <td className="px-3">{product.description}</td>
-                <td className="px-3">{product.quantity}</td>
-                <td className="px-3">{ }{product.isActive ? "Sim" : "Não"}</td>
-                <td className="px-3">
-                  <button
-                    className="text-gray-700 hover:text-purple-500 cursor-pointer"
-                    onClick={() => onEdit(product.id)}
-                  >
-                    <FaEdit />
-                  </button>
-                </td>
-                <td>
-                  <button
-                    disabled={!product.isActive}
-                    type="button"
-                    className="text-red-600 hover:text-red-800 cursor-pointer disabled:cursor-not-allowed disabled:text-gray-500"
-                    onClick={() => handleDelete(product.id)}
-                  >
-                    <FaTrash />
-                  </button>
-                </td>
+        <div className="max-h-[300px] overflow-y-auto border-gray-300 border rounded">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr>
+                <th className="py-2 px-3">Foto</th>
+                <th className="px-3">Nome do Produto</th>
+                <th className="px-3">Quantidade</th>
+                <th className="px-3">Ativo</th>
+                <th className="px-3">Editar</th>
+                <th className="px-3">Excluir</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-
-        <div className="flex justify-end gap-2 mt-4">
-          <button
-            className="cursor-pointer px-2 py-1 border rounded text-gray-500"
-            disabled
-          >
-            &lt;
-          </button>
-          <button className="cursor-pointer px-2 py-1 border rounded bg-purple-500 text-white">
-            1
-          </button>
-          <button className="cursor-pointer px-2 py-1 border rounded text-gray-500">
-            &gt;
-          </button>
+            </thead>
+            <tbody>
+              {products.map((product) => (
+                <tr key={product.id} className="hover:bg-gray-50 transition-colors">
+                  <td className="py-2 px-3">
+                    <img
+                      src={product.imageUrl}
+                      alt={product.description}
+                      className="w-12 h-12 object-cover rounded cursor-pointer"
+                      onClick={() => {
+                        setIdSelecionado(product.id);
+                        setOpen(true);
+                      }}
+                    />
+                  </td>
+                  <td className="px-3">
+                    <span className={`${!product.isActive ? "line-through text-gray-500" : ""}`}>
+                      {product.description.length > 100
+                        ? `${product.description.substring(0, 100)}...`
+                        : product.description}
+                    </span>
+                  </td>
+                  <td className="px-3">{product.quantity}</td>
+                  <td className="px-3">{ }{product.isActive ? "Sim" : "Não"}</td>
+                  <td className="px-3">
+                    <button
+                      className="text-gray-700 hover:text-purple-500 cursor-pointer"
+                      onClick={() => onEdit(product.id)}
+                    >
+                      <FaEdit />
+                    </button>
+                  </td>
+                  <td>
+                    <button
+                      disabled={!product.isActive}
+                      type="button"
+                      className="text-red-600 hover:text-red-800 cursor-pointer disabled:cursor-not-allowed disabled:text-gray-500"
+                      onClick={() => handleDelete(product.id)}
+                    >
+                      <FaTrash />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
         <ProductPopup
           productId={idSelecionado}

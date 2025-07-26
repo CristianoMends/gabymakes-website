@@ -108,9 +108,11 @@ const LoginPopup = () => {
                 }, 1500);
             } else {
                 showAppMessage('error', result.message || 'Erro ao fazer login.');
+                setIsLoading(false);
             }
         } catch (error) {
             showAppMessage(error, 'Erro ao enviar requisição. Verifique sua conexão.');
+            setIsLoading(false);
         }
     };
 
