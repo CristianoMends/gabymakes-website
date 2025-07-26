@@ -136,7 +136,7 @@ export default function Banner() {
 
         {banners.length > 1 && (
           <div className="absolute bottom-4 flex space-x-2">
-            {banners.map((_, index) => (
+            {banners.sort((a, b) => a.id - b.id).map((_, index) => (
               <button
                 key={index}
                 onClick={() => goToSlide(index)}

@@ -66,7 +66,7 @@ export default function CategoriesBar() {
                     <li key={catName}>
                         <a
 
-                            href={`/busca?q=${encodeURIComponent(catName.replaceAll(' ', '-'))}`}
+                            href={`/busca?q=${encodeURIComponent(catName.replaceAll(' ', '_'))}`}
                             className="text-gray-800 text-sm sm:text-base font-semibold uppercase tracking-wide
                          hover:text-pink-700 transition-colors duration-200 ease-in-out
                          focus:outline-none focus:ring-2 focus:ring-pink-400 focus:ring-offset-2"

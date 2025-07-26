@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 
 const PageNotFound = () => {
     return (
+        document.title = "Página não encontrada | GabyMakes",
         <div className="min-h-screen bg-white flex flex-col justify-center items-center py-12 px-4 sm:px-6 lg:px-8">
             <div className="bg-white rounded-lg shadow-xl p-8 max-w-md w-full">
                 <div className="text-center">

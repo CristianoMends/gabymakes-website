@@ -10,6 +10,14 @@ export default function ProductCard({ product, cloudUrl, userId }) {
     const { id, brand, description, price, imageUrl } = product;
     const imageToDisplay = imageUrl ? imageUrl : cardPlaceholder;
     const [message, setMessage] = useState(null);
+    const discount = product.discount || 0;
+
+    const discountedPrice = price - (price * discount / 100);
+    const formattedDiscountedPrice = new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL',
+    }).format(discountedPrice);
+
 
     const formattedPrice = new Intl.NumberFormat('pt-BR', {
         style: 'currency',
@@ -92,9 +100,24 @@ export default function ProductCard({ product, cloudUrl, userId }) {
                 <div className="p-4 flex flex-col gap-2 w-full items-center text-center">
                     <h3 className="text-lg font-medium text-gray-800 truncate max-w-full" title={brand}>{brand}</h3>
                     <p className="text-sm text-gray-600 h-16 overflow-hidden text-ellipsis line-clamp-3">{description}</p>
-                    <span className="text-3xl text-gray-800 font-bold mt-2 tracking-tight font-poppins">
-                        {formattedPrice}
-                    </span>
+                    {discount > 0 ? (
+                        <div className="flex flex-col items-center">
+                            <span className="text-gray-500 text-sm line-through">
+                                {formattedPrice}
+                            </span>
+                            <span className="text-3xl text-pink-500 font-bold tracking-tight font-poppins">
+                                {formattedDiscountedPrice}
+                            </span>
+                            <span className="text-xs text-green-600 mt-1">
+                                {discount}% OFF
+                            </span>
+                        </div>
+                    ) : (
+                        <span className="text-3xl text-gray-800 font-bold tracking-tight font-poppins">
+                            {formattedPrice}
+                        </span>
+                    )}
+
                 </div>
 
             </div>

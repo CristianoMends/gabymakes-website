@@ -26,8 +26,10 @@ export default function AdminProductCreate({ onSuccess, onCancel }) {
     "Perfume feminino", "Perfume masculino", "Body splash", "Colônia",
     "Barbeador", "Pós-barba", "Espuma de barbear", "Balm para barba",
     "Shampoo infantil", "Sabonete infantil", "Protetor solar infantil",
-    "Colônia infantil", "Orgânico", "Vegano", "Cruelty-free", "Sem parabenos",
+    "Colônia infantil", "Orgânico", "Vegano", "Cruelty-free", "Sem parabenos", "Maquiagem", "Creme Facial"
   ].sort();
+
+  const [selectedFile, setSelectedFile] = useState(null);
 
   const [analysis, setAnalysis] = useState(null);
   const [file, setFile] = useState(null);
@@ -39,24 +41,26 @@ export default function AdminProductCreate({ onSuccess, onCancel }) {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleFileChange = (e) => {
-    const selected = e.target.files?.[0];
+  const handleImageChange = ({ target }) => {
+    const file = target.files?.[0];
     setAnalysis(null);
-    setFile(null);
+    setSelectedFile(null);
+    setForm((prev) => ({ ...prev, imageUrl: "" }));
 
-    if (!selected) {
+    if (!file) {
       return;
     }
 
     const validTypes = ["image/jpeg", "image/png"];
     const maxSizeBytes = 6.1 * 1024 * 1024;
-    const sizeOK = selected.size <= maxSizeBytes;
-    const typeOK = validTypes.includes(selected.type);
+
+    const sizeOK = file.size <= maxSizeBytes;
+    const typeOK = validTypes.includes(file.type);
 
     const img = new Image();
     img.onload = () => {
       const { width, height } = img;
-      const minSizeOK = width >= 500 && height >= 500;
+      const minSizeOK = width >= 400 && height >= 400;
       const ratioOK = Math.abs(width - height) / Math.max(width, height) <= 0.1;
 
       setAnalysis({
@@ -66,18 +70,18 @@ export default function AdminProductCreate({ onSuccess, onCancel }) {
         sizeOK,
         minSizeOK,
         ratioOK,
-        fileType: selected.type,
-        fileSize: selected.size,
+        fileType: file.type,
+        fileSize: file.size,
       });
-      setFile(selected);
+      setSelectedFile(file);
+      setForm((prev) => ({ ...prev, imageUrl: URL.createObjectURL(file) }));
     };
     img.onerror = () => {
-
-      setMessage({ type: "error", text: "Não foi possível carregar a imagem para análise. Verifique o arquivo." });
-      setFile(null);
       setAnalysis(null);
+      setSelectedFile(null);
+      setMsg({ type: "error", text: "Não foi possível carregar a imagem para análise. Verifique o arquivo." });
     };
-    img.src = URL.createObjectURL(selected);
+    img.src = URL.createObjectURL(file);
   };
 
   const validateForm = () => {
@@ -95,6 +99,10 @@ export default function AdminProductCreate({ onSuccess, onCancel }) {
       setMessage({ type: "error", text: "A descrição é obrigatória." });
       return false;
     }
+    if (description.length > 500) {
+      setMessage({ type: "error", text: "A descrição não pode ter mais de 100 caracteres." });
+      return false;
+    }
     if (!brand.trim()) {
       setMessage({ type: "error", text: "A marca é obrigatória." });
       return false;
@@ -103,7 +111,7 @@ export default function AdminProductCreate({ onSuccess, onCancel }) {
       setMessage({ type: "error", text: "A categoria é obrigatória." });
       return false;
     }
-    if (!file || !analysis || !analysis.typeOK || !analysis.sizeOK || !analysis.minSizeOK || !analysis.ratioOK) {
+    if (!file || !analysis || !analysis.typeOK || !analysis.sizeOK || !analysis.minSizeOK) {
       setMessage({ type: "error", text: "Selecione uma imagem válida para o produto com todas as verificações OK." });
       return false;
     }
@@ -192,16 +200,13 @@ export default function AdminProductCreate({ onSuccess, onCancel }) {
           onClose={() => setMessage(null)}
         />
       )}
-      <div className="p-2 sm:p-4 md:p-6"> {/* Padding ajustado */}
-        {/* Título da seção já vem do AdminProduct pai */}
-        {/* <h2 className="text-xl font-bold mb-4">Adicionar Produto</h2> */}
-
+      <div>
         <form
           onSubmit={handleSubmit}
-          className="p-6 bg-white rounded-lg shadow-lg border border-gray-200 max-w-4xl mx-auto"
+          className="p-2 bg-white mx-auto"
         >
-          <div className="grid md:grid-cols-2 gap-6 mb-6"> {/* Adicionei mb-6 */}
-            {/* Preço e Quantidade */}
+          <div className="grid md:grid-cols-2 gap-6 mb-6">
+
             <div className="flex flex-col gap-4">
               <label className="block">
                 <span className="block text-gray-700 text-sm font-semibold mb-1">Preço (R$)</span>
@@ -246,6 +251,7 @@ export default function AdminProductCreate({ onSuccess, onCancel }) {
                 className="block w-full p-3 border border-gray-300 rounded-md shadow-sm
                                            focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent
                                            text-gray-700 placeholder-gray-400 h-full min-h-[120px] resize-y"
+                maxLength="500"
               />
             </label>
           </div>
@@ -270,7 +276,7 @@ export default function AdminProductCreate({ onSuccess, onCancel }) {
               <span className="block text-gray-700 text-sm font-semibold mb-1">Categoria</span>
               <select
                 name="category"
-                value={form.category.toUpperCase()}
+                value={form.category}
                 onChange={handleChange}
                 className="block w-full p-3 border border-gray-300 rounded-md shadow-sm
                                            focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent
@@ -293,7 +299,7 @@ export default function AdminProductCreate({ onSuccess, onCancel }) {
               <input
                 type="file"
                 accept="image/jpeg, image/png"
-                onChange={handleFileChange}
+                onChange={handleImageChange}
                 className="block w-full text-sm cursor-pointer text-gray-500 file:cursor-pointer
                                            file:mr-4 file:py-2 file:px-4
                                            file:rounded-full file:border-0
@@ -302,6 +308,20 @@ export default function AdminProductCreate({ onSuccess, onCancel }) {
                                            hover:file:bg-pink-100 cursor-pointer"
               />
             </label>
+
+            <div className="flex flex-col justify-between items-center w-full">
+              {/* Preview da Imagem Atual ou Nova */}
+              {(form.imageUrl || selectedFile) && (
+                <div className="mt-2">
+                  <span className="block text-sm text-gray-600 mb-1">Prévia da Imagem:</span>
+                  <img
+                    src={form.imageUrl}
+                    alt="Prévia do Produto"
+                    className="h-64 w-64 object-fit"
+                  />
+                </div>
+              )}
+            </div>
 
             {analysis && (
               <div className="mt-4 p-4 border border-gray-200 rounded-lg bg-gray-50 shadow-sm">
@@ -326,18 +346,11 @@ export default function AdminProductCreate({ onSuccess, onCancel }) {
                   <li className={`flex items-center gap-2 ${analysis.minSizeOK ? "text-green-700" : "text-red-700"}`}>
                     {analysis.minSizeOK ? (<HiCheckCircle className="text-green-500" />) : (<HiXCircle className="text-red-500" />)}
                     <span>
-                      Dimensão mínima 500×500 px ({analysis.width}×{analysis.height}) {analysis.minSizeOK ? "(OK)" : "(muito pequena)"}
-                    </span>
-                  </li>
-
-                  <li className={`flex items-center gap-2 ${analysis.ratioOK ? "text-green-700" : "text-red-700"}`}>
-                    {analysis.ratioOK ? (<HiCheckCircle className="text-green-500" />) : (<HiXCircle className="text-red-500" />)}
-                    <span>
-                      Proporção próxima de quadrado {analysis.ratioOK ? "(OK)" : "(desproporcional)"}
+                      Dimensão mínima 400×400 px ({analysis.width}×{analysis.height}) {analysis.minSizeOK ? "(OK)" : "(muito pequena)"}
                     </span>
                   </li>
                 </ul>
-                {(!analysis.typeOK || !analysis.sizeOK || !analysis.minSizeOK || !analysis.ratioOK) && (
+                {(!analysis.typeOK || !analysis.sizeOK || !analysis.minSizeOK) && (
                   <p className="mt-3 text-red-600 text-sm font-medium">Por favor, corrija os problemas da imagem antes de salvar.</p>
                 )}
               </div>
@@ -364,10 +377,10 @@ export default function AdminProductCreate({ onSuccess, onCancel }) {
               type="submit"
               disabled={
                 loading ||
-                !form.price || !form.quantity || !form.description || !form.brand || !form.category ||
-                !analysis || !analysis.typeOK || !analysis.sizeOK || !analysis.minSizeOK || !analysis.ratioOK
+                !form.price || !form.quantity || !form.description || form.description.length > 500 || !form.brand || !form.category ||
+                !analysis || !analysis.typeOK || !analysis.sizeOK || !analysis.minSizeOK
               }
-              className="bg-pink-500 cursor-pointer text-white px-6 py-2 rounded-md font-semibold
+              className="bg-pink-500 cursor-pointer text-black px-6 py-2 rounded-md font-semibold
                                        hover:bg-pink-600 transition-colors duration-200 shadow-md
                                        disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-pink-500
                                        focus:outline-none focus:ring-2 focus:ring-pink-400"

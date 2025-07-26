@@ -9,7 +9,7 @@ export default function AdminProduct({ page = "list" }) {
     const [selectedId, setSelectedId] = useState(null);
 
     useEffect(() => {
-        let title = "Produtos | GabyMakes Admin";
+        let title = "Gerenciar Produtos | GabyMakes Admin";
         if (currentPage === "create") {
             title = "Adicionar Produto | GabyMakes Admin";
         } else if (currentPage === "edit") {
@@ -56,8 +56,8 @@ export default function AdminProduct({ page = "list" }) {
 
             case "edit":
                 return (
-                    <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-200">
-                        <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">Editar Produto</h2>
+                    <div className="bg-white p-2 rounded-lg shadow-lg border border-gray-200">
+                        <h2 className="text-2xl font-bold text-gray-800 text-center">Editar Produto</h2>
                         <AdminProductEdit
                             id={selectedId}
                             onEdit={() => setCurrentPage("list")}
