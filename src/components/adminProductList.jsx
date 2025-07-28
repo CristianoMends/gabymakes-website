@@ -104,7 +104,7 @@ export default function AdminProductList({ onEdit }) {
             Buscar
           </button>
         </div>
-        <div className="max-h-[300px] overflow-y-auto border-gray-300 border rounded">
+        <div className="max-h-[50vh] overflow-y-auto border-gray-300 border rounded">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr>

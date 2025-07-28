@@ -22,9 +22,7 @@ export default function Home() {
       <div className="h-screen flex-1 flex-col">
         <CategoriesBar />
 
-        <div className="w-full">
-          <Banner />
-        </div>
+        <Banner />
 
         <hr className="w-11/12 mx-auto border-none" />
 

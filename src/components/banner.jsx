@@ -93,7 +93,7 @@ export default function Banner() {
 
   if (banners.length === 0) {
     return (
-      <div className="flex justify-center items-center h-screen bg-gray-100 text-gray-500"> 
+      <div className="flex justify-center items-center h-screen bg-gray-100 text-gray-500">
 
       </div>
     );
@@ -102,46 +102,48 @@ export default function Banner() {
   const currentBanner = banners[currentIndex];
 
   return (
-    <div className="relative w-full overflow-hidden my-10">
-      <div className="relative w-full h-screen max-h-[400px] flex items-center justify-center bg-white">
+    <div className="relative w-screen overflow-hidden">
+      <div className="relative w-screen h-[20vh] sm:h-[50vh] md:h-[60vh] lg:h-[70vh] flex items-center justify-center bg-white">
         <img
           key={fadeKey}
           src={currentBanner.imageUrl}
           alt={currentBanner.description}
-          className="w-full h-full object-contain object-center 
-                               transition-opacity duration-700 ease-in-out opacity-100"
+          className="w-full h-full object-cover object-center 
+                   transition-opacity duration-700 ease-in-out opacity-100"
           loading="lazy"
         />
 
+        {/* Botões de navegação */}
         {banners.length > 1 && (
           <>
             <button
               onClick={goToPrevious}
-              className="cursor-pointer absolute left-4 top-1/2 -translate-y-1/2 bg-pink-400 bg-opacity-50 text-white p-3 rounded-full
-                                    hover:bg-opacity-75 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-white"
+              className="hidden sm:flex cursor-pointer absolute left-4 top-1/2 -translate-y-1/2 bg-pink-400 bg-opacity-50 text-white p-2 sm:p-3 rounded-full
+                     hover:bg-opacity-75 transition duration-300 focus:outline-none focus:ring-2 focus:ring-white"
               aria-label="Banner anterior"
             >
-              <FaChevronLeft size={24} />
+              <FaChevronLeft size={20} />
             </button>
             <button
               onClick={goToNext}
-              className="cursor-pointer absolute right-4 top-1/2 -translate-y-1/2 bg-pink-400 bg-opacity-50 text-white p-3 rounded-full
-                                    hover:bg-opacity-75 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-white"
+              className="hidden sm:flex cursor-pointer absolute right-4 top-1/2 -translate-y-1/2 bg-pink-400 bg-opacity-50 text-white p-2 sm:p-3 rounded-full
+                     hover:bg-opacity-75 transition duration-300 focus:outline-none focus:ring-2 focus:ring-white"
               aria-label="Próximo banner"
             >
-              <FaChevronRight size={24} />
+              <FaChevronRight size={20} />
             </button>
           </>
         )}
 
+        {/* Indicadores */}
         {banners.length > 1 && (
-          <div className="absolute bottom-4 flex space-x-2">
-            {banners.sort((a, b) => a.id - b.id).map((_, index) => (
+          <div className="absolute bottom-3 sm:bottom-4 flex space-x-1 sm:space-x-2">
+            {banners.map((_, index) => (
               <button
                 key={index}
                 onClick={() => goToSlide(index)}
-                className={`h-3 w-3 rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-white
-                                            ${currentIndex === index ? 'bg-white scale-125' : 'bg-gray-400 bg-opacity-70 hover:bg-white'}`}
+                className={`h-2 w-2 sm:h-3 sm:w-3 rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-white
+                ${currentIndex === index ? 'bg-white scale-125' : 'bg-gray-400 bg-opacity-70 hover:bg-white'}`}
                 aria-label={`Ir para o slide ${index + 1}`}
               />
             ))}
@@ -150,4 +152,5 @@ export default function Banner() {
       </div>
     </div>
   );
+
 }
