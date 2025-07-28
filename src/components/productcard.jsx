@@ -77,7 +77,7 @@ export default function ProductCard({ product, cloudUrl, userId }) {
     };
 
     const handleCardClick = () => {
-        navigate(`/details/${id}`);
+        navigate(`/produtos/${id}`);
     };
 
     return (

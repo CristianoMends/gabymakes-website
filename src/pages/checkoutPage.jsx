@@ -322,12 +322,12 @@ export default function CheckoutPage() {
                         <span>R$ {total.toFixed(2).replace('.', ',')}</span>
                     </div>
                     {/*<p className="text-xs text-zinc-600 mb-6">ou 3x de R$ {(total / 3).toFixed(2).replace('.', ',')} sem juros</p>*/}
-                    <button
+                    {/* <button
                         onClick={finalizarPedido}
                         className="mb-3 bg-pink-300 hover:bg-pink-400 text-black px-5 py-2 rounded font-semibold transition cursor-pointer"
                     >
                         Finalizar pedido
-                    </button>
+                    </button> */}
                     <button
                         onClick={finalizarViaWhatsapp}
                         className="bg-pink-300 hover:bg-pink-400 text-black px-5 py-2 rounded font-semibold transition cursor-pointer"

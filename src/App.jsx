@@ -33,7 +33,7 @@ function App() {
                 />
 
                 <Route path='/checkout/:userId' element={<CheckoutPage />} />
-                <Route path="details/:id" element={<ProductDetailPage />} />
+                <Route path="produtos/:id" element={<ProductDetailPage />} />
                 <Route path="*" element={<PageNotFound />} />
             </Routes>
             <MessageContainer />

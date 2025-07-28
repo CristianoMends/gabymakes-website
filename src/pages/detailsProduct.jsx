@@ -6,6 +6,11 @@ import Breadcrumb from '../components/breadcrumb';
 import LoadingCircles from '../components/loading';
 import Message from '../components/message';
 
+
+import InnerImageZoom from 'react-inner-image-zoom';
+import 'react-inner-image-zoom/lib/styles.min.css'
+
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 export default function ProductDetailPage() {
@@ -57,6 +62,11 @@ export default function ProductDetailPage() {
     }
   }, []);
 
+  const handleBuyNow = () => {
+
+
+  }
+
   /* ------------ adicionar à sacola ------------ */
   const handleAddToCart = async () => {
     // ... (seu código handleAddToCart continua o mesmo)
@@ -102,7 +112,7 @@ export default function ProductDetailPage() {
 
   if (loading) return <LoadingCircles />;
   if (error) return <p className="text-red-600">{error}</p>;
-  if (!product) return null; 
+  if (!product) return null;
 
   const seoDescription = product.description.length > 155
     ? product.description.substring(0, 152) + '...'
@@ -110,7 +120,7 @@ export default function ProductDetailPage() {
 
   return (
     <div className="bg-white text-gray-800">
-      <title>{`${product.description.substring(0,15)} - ${product.brand} | GabyMakes`}</title>
+      <title>{`${product.description.substring(0, 15)} - ${product.brand} | GabyMakes`}</title>
       <meta name="description" content={seoDescription} />
       <link rel="canonical" href={`https://gabymakes-website-git-develop-cristianos-projects-14338c05.vercel.app/product/${product.id}`} />
 
@@ -126,12 +136,18 @@ export default function ProductDetailPage() {
       <Header />
       <main className="max-w-6xl mx-auto px-4 py-10">
         <Breadcrumb />
-        <div className="grid md:grid-cols-2 gap-10">
-          <img
-            src={product.imageUrl || '/default-image.jpg'}
-            alt={product.name}
-            className="w-full rounded"
-          />
+        <div className="grid min-h-[60vh] md:grid-cols-2 gap-10 mt-[50px]">
+          <div className="group w-50 hover:w-70 max-w-md mx-auto md:mx-0 overflow-hidden rounded">
+            <InnerImageZoom
+              src={product.imageUrl || '/default-image.jpg'}
+              zoomSrc={product.imageUrl || '/default-image.jpg'}
+              zoomType="hover"
+              zoomPreload={true}
+              alt={product.name}
+              className="w-full max-w-md rounded"
+            />
+          </div>
+
           <div>
             <h1 className="text-2xl font-bold mb-2">{product.brand}</h1>
             {/* Note que a descrição completa ainda é exibida para o usuário */}
@@ -165,9 +181,11 @@ export default function ProductDetailPage() {
             </div>
 
             <div className="flex gap-4">
-              <button className="bg-[#FFA5BD] cursor-pointer text-white px-6 py-2 rounded shadow hover:bg-[#ff8cae] transition-colors duration-300">
+              {/*<button
+                onClick={han}
+                className="bg-[#FFA5BD] cursor-pointer text-white px-6 py-2 rounded shadow hover:bg-[#ff8cae] transition-colors duration-300">
                 comprar agora
-              </button>
+              </button>*/}
               <button
                 onClick={handleAddToCart}
                 className="bg-[#FFA5BD] cursor-pointer text-white px-6 py-2 rounded shadow hover:bg-[#ff8cae] transition-colors duration-300"
