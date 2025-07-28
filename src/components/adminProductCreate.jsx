@@ -32,7 +32,6 @@ export default function AdminProductCreate({ onSuccess, onCancel }) {
   const [selectedFile, setSelectedFile] = useState(null);
 
   const [analysis, setAnalysis] = useState(null);
-  const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
 
@@ -111,7 +110,7 @@ export default function AdminProductCreate({ onSuccess, onCancel }) {
       setMessage({ type: "error", text: "A categoria é obrigatória." });
       return false;
     }
-    if (!file || !analysis || !analysis.typeOK || !analysis.sizeOK || !analysis.minSizeOK) {
+    if (!selectedFile || !analysis || !analysis.typeOK || !analysis.sizeOK || !analysis.minSizeOK) {
       setMessage({ type: "error", text: "Selecione uma imagem válida para o produto com todas as verificações OK." });
       return false;
     }
@@ -127,7 +126,7 @@ export default function AdminProductCreate({ onSuccess, onCancel }) {
 
     try {
       const uploadData = new FormData();
-      uploadData.append("file", file);
+      uploadData.append("file", selectedFile);
 
       const token = localStorage.getItem("accessToken");
       const uploadRes = await fetch(`${API_URL}/upload`, {
@@ -355,7 +354,7 @@ export default function AdminProductCreate({ onSuccess, onCancel }) {
                 )}
               </div>
             )}
-            {file && !analysis && (
+            {selectedFile && !analysis && (
               <p className="mt-2 text-gray-500 text-sm">Analisando imagem...</p>
             )}
           </div>
