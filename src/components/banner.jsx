@@ -102,8 +102,9 @@ export default function Banner() {
   const currentBanner = banners[currentIndex];
 
   return (
-    <div className="relative w-screen overflow-hidden">
-      <div className="relative w-screen h-[20vh] sm:h-[50vh] md:h-[60vh] lg:h-[70vh] flex items-center justify-center bg-white">
+    <div className="relative w-full overflow-hidden">
+      <div className="relative w-full h-[20vh] sm:h-[50vh] md:h-[60vh] lg:h-[70vh] flex items-center justify-center bg-white max-w-screen">
+
         <img
           key={fadeKey}
           src={currentBanner.imageUrl}
