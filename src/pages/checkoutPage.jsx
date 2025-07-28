@@ -224,7 +224,7 @@ export default function CheckoutPage() {
         }
 
         const textoProdutos = produtos
-            .map((p) => `- ${p.nome} (${p.quantidade}x) R$ ${p.preco.toFixed(2).replace('.', ',')}`)
+            .map((p) => `- ${p.nome.slice(0, 100)} (${p.quantidade}x) R$ ${p.preco.toFixed(2).replace('.', ',')}`)
             .join('\n');
 
         const textoEndereco = `${selected.street}, ${selected.city} - ${selected.state}, ${selected.zipCode}`;
