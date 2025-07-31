@@ -1,27 +1,29 @@
 import { FiUser, FiSearch } from 'react-icons/fi';
 import { HiOutlineShoppingBag } from 'react-icons/hi2';
 import logo from '../assets/logo-bg-transparent-2.png';
-import { useState, useRef, useEffect } from 'react'; // searchContainerRef e searchQuery/setSearchQuery foram movidos
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CartModal from './CartModal';
-import SearchBar from './SearchBar'; // Importe o novo componente SearchBar
+import SearchBar from './SearchBar';
+import ConfirmationModal from './confirmationModal';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
 export default function Header() {
-    const [showSearchMobile, setShowSearchMobile] = useState(false); // Este estado fica aqui para controlar a visibilidade da SearchBar mobile
+    const [showSearchMobile, setShowSearchMobile] = useState(false);
     const [userName, setUserName] = useState('');
     const [userId, setUserId] = useState(null);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
-    // searchQuery e searchContainerRef foram movidos para SearchBar
     const [cartItemCount, setCartItemCount] = useState(0);
     const [showCartModal, setShowCartModal] = useState(false);
+    const [confirmation, setConfirmation] = useState(false);
 
-    const loginContainerRef = useRef(null); // Mantém este ref, se ainda for usado para login
+    const loginContainerRef = useRef(null);
 
     const navigate = useNavigate();
 
-    // Checa login
+
     useEffect(() => {
         const checkLoginStatus = () => {
             const accessToken = localStorage.getItem('accessToken');
@@ -50,7 +52,7 @@ export default function Header() {
         return () => window.removeEventListener('storage', checkLoginStatus);
     }, []);
 
-    // Lógica do carrinho
+
     useEffect(() => {
         async function updateCartCount() {
             if (userId) {
@@ -108,7 +110,7 @@ export default function Header() {
         }
     };
 
-    // Função para passar para o SearchBar para controlar showSearchMobile
+
     const handleToggleMobileSearch = (shouldShow) => {
         if (typeof shouldShow === 'boolean') {
             setShowSearchMobile(shouldShow);
@@ -119,6 +121,19 @@ export default function Header() {
 
     return (
         <div className="relative">
+
+            {confirmation && (
+                <ConfirmationModal
+                    title='Usuário não autenticado!'
+                    message='Para acessar o carrinho, você precisa estar logado.'
+                    onConfirm={() => navigate('/login')}
+                    onCancel={() => setConfirmation(false)}
+                    confirmText='Ir para Login'
+                    cancelText='Cancelar'
+                />
+            )}
+
+
             <header className="bg-pink-300 px-8 py-6 flex items-center">
                 <div className="flex-shrink-0 cursor-pointer" onClick={() => navigate('/')}>
                     <img src={logo} alt="Logo Gaby" className="h-10" />
@@ -137,7 +152,7 @@ export default function Header() {
                         <FiSearch
                             size={22}
                             className="text-gray-800 cursor-pointer hover:text-pink-600 transition-colors"
-                            onClick={() => handleToggleMobileSearch(true)} // Apenas abre, o SearchBar fecha
+                            onClick={() => handleToggleMobileSearch(true)}
                         />
                     </div>
 
@@ -157,7 +172,15 @@ export default function Header() {
                     </div>
 
                     {/* Carrinho */}
-                    <div className="relative cursor-pointer" onClick={() => setShowCartModal(true)}>
+                    <div
+                        className="relative cursor-pointer"
+                        onClick={() => {
+                            if (!isLoggedIn) {
+                                setConfirmation(true);
+                            } else {
+                                setShowCartModal(true);
+                            }
+                        }}>
                         <HiOutlineShoppingBag size={30} className="text-gray-800" />
                         {cartItemCount > 0 && (
                             <span className="absolute -top-2 -right-2 bg-white text-pink-500 text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow">

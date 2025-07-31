@@ -103,7 +103,7 @@ export default function Banner() {
 
   return (
     <div className="relative w-full overflow-hidden">
-      <div className="relative w-full h-[20vh] sm:h-[50vh] md:h-[60vh] lg:h-[70vh] flex items-center justify-center bg-white max-w-screen">
+      <div className="relative w-full h-[20vh] sm:h-[50vh] md:h-[60vh] lg:h-[80vh] flex items-center justify-center bg-white max-w-screen">
 
         <img
           key={fadeKey}
@@ -119,7 +119,7 @@ export default function Banner() {
           <>
             <button
               onClick={goToPrevious}
-              className="hidden sm:flex cursor-pointer absolute left-4 top-1/2 -translate-y-1/2 bg-pink-400 bg-opacity-50 text-white p-2 sm:p-3 rounded-full
+              className="hidden sm:flex cursor-pointer absolute left-4 top-1/2 -translate-y-1/2 bg-pink-400 bg-opacity-50 text-black p-2 sm:p-3 rounded-full
                      hover:bg-opacity-75 transition duration-300 focus:outline-none focus:ring-2 focus:ring-white"
               aria-label="Banner anterior"
             >
@@ -127,7 +127,7 @@ export default function Banner() {
             </button>
             <button
               onClick={goToNext}
-              className="hidden sm:flex cursor-pointer absolute right-4 top-1/2 -translate-y-1/2 bg-pink-400 bg-opacity-50 text-white p-2 sm:p-3 rounded-full
+              className="hidden sm:flex cursor-pointer absolute right-4 top-1/2 -translate-y-1/2 bg-pink-400 bg-opacity-50 text-black p-2 sm:p-3 rounded-full
                      hover:bg-opacity-75 transition duration-300 focus:outline-none focus:ring-2 focus:ring-white"
               aria-label="Próximo banner"
             >
