@@ -11,6 +11,8 @@ import AdminPage from './pages/adminPage'
 import AdminRoute from './components/adminRoute';
 import CheckoutPage from './pages/checkoutPage'
 import SearchResult from './pages/searchResult'
+import PaymentSuccessPage from './pages/PaymentSuccessPage';
+import PaymentFailurePage from './pages/paymentFailurePage';
 
 function App() {
     return (
