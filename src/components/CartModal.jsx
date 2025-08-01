@@ -17,11 +17,11 @@ export default function CartModal({ onClose }) {
 
     /* ---------- USER ---------- */
     useEffect(() => {
-        const cu = localStorage.getItem('currentUser');
-        if (!cu) { setUserId(null); return; }
+        const currentUser = localStorage.getItem('currentUser');
+        if (!currentUser) { setUserId(null); return; }
 
         try {
-            const id = JSON.parse(cu)?.id;
+            const id = JSON.parse(currentUser)?.id;
             if (id) {
                 localStorage.removeItem('cart');
             }

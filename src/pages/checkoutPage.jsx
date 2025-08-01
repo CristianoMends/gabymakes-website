@@ -1,17 +1,20 @@
-import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useState, useEffect, useRef, useMemo } from 'react';
+import { useParams, Link } from 'react-router-dom';
 import { HiTrash, HiPlus, HiMinus, HiX } from 'react-icons/hi';
-import LoadingCircles from '../components/loading';
+import { HiOutlineCloudArrowUp } from "react-icons/hi2";
+import Loading from '../components/loading';
 import Message from '../components/message';
 import HeaderVariant from '../components/header-variant';
 import Footer from '../components/footer';
-import { initMercadoPago, Wallet } from '@mercadopago/sdk-react';
+import { Wallet } from '@mercadopago/sdk-react';
 import axios from 'axios';
+import { PulseLoader } from 'react-spinners';
+
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 export default function CheckoutPage() {
-    const { userId } = useParams();
+    const { userId: userIdFromParams } = useParams();
 
     /* ---------------- estado ---------------- */
     const [loading, setLoading] = useState(true);
@@ -24,6 +27,14 @@ export default function CheckoutPage() {
         state: '',
         zipCode: '',
     });
+
+    const [cartItems, setCartItems] = useState([]);
+    const [isSyncing, setIsSyncing] = useState(false);
+    const pendingUpdates = useRef({});
+    const debounceTimer = useRef(null);
+    const userId = userIdFromParams === 'guest' ? null : userIdFromParams;
+
+    const [frete, setFrete] = useState(0);
     const [message, setMessage] = useState(null);
 
     const [preferenceId, setPreferenceId] = useState(null);
@@ -33,8 +44,119 @@ export default function CheckoutPage() {
     const [estados, setEstados] = useState([]);
     const [cidades, setCidades] = useState([]);
 
-    /* ------ carrinho dummy para exemplo ------ */
-    const [produtos, setProdutos] = useState([]);
+    useEffect(() => {
+        const fetchAndCalculateCart = async () => {
+            setLoading(true);
+            let items = [];
+            if (userId) {
+                try {
+                    const res = await fetch(`${API_BASE_URL}/cart-item/${userId}`);
+                    if (res.ok) items = await res.json();
+                } catch (err) { console.error(err); }
+            } else {
+                items = JSON.parse(localStorage.getItem('cart')) || [];
+            }
+
+            const formattedItems = items.map(item => ({
+                ...item,
+                product: {
+                    ...item.product,
+                    price: Number(item.product.price),
+                    discount: Number(item.product.discount) || 0,
+                },
+                quantity: Number(item.quantity),
+            }));
+
+            setCartItems(formattedItems);
+            setLoading(false);
+        };
+
+        fetchAndCalculateCart();
+    }, [userId]);
+
+    const syncUpdates = async () => {
+        const updates = { ...pendingUpdates.current };
+        pendingUpdates.current = {};
+
+        if (!userId || Object.keys(updates).length === 0) {
+            setIsSyncing(false);
+            return;
+        }
+
+        setIsSyncing(true);
+        try {
+            await Promise.all(
+                Object.entries(updates).map(([productId, quantity]) => {
+
+                    if (quantity <= 0) {
+                        return axios.delete(`${API_BASE_URL}/cart-item/remove`, {
+                            data: {
+                                userId: userId,
+                                productId: productId,
+                            },
+                        });
+                    }
+                    else {
+                        const itemToUpdate = cartItems.find(
+                            (item) => (item.product?.id || item.id) === productId
+                        );
+
+                        if (!itemToUpdate) return Promise.resolve();
+
+
+                        return axios.patch(`${API_BASE_URL}/cart-item/update-quantity`, {
+                            userId: userId,
+                            itemId: itemToUpdate.id,
+                            quantity: quantity,
+                        });
+                    }
+                })
+            );
+
+        } catch (err) {
+            console.error('Erro ao sincronizar carrinho:', err);
+            setMessage({ type: 'error', text: 'Erro ao salvar alterações no carrinho.' });
+        } finally {
+            setIsSyncing(false);
+        }
+    };
+
+    const scheduleSync = () => {
+        if (debounceTimer.current) clearTimeout(debounceTimer.current);
+        if (userId) setIsSyncing(true);
+        debounceTimer.current = setTimeout(syncUpdates, 1500);
+    };
+
+    const handleUpdateQuantity = (productId, newQuantity) => {
+        if (newQuantity < 1) return;
+
+        setCartItems((currentItems) => {
+            const updatedItems = currentItems.map((item) => {
+                const itemProductId = item.product?.id || item.id;
+                if (itemProductId === productId) {
+                    return { ...item, quantity: newQuantity };
+                }
+                return item;
+            });
+
+            if (!userId) localStorage.setItem('cart', JSON.stringify(updatedItems));
+            return updatedItems;
+        });
+
+        pendingUpdates.current[productId] = newQuantity;
+        scheduleSync();
+    };
+
+    const handleRemove = (productId) => {
+        setCartItems((currentItems) => {
+            const updatedItems = currentItems.filter((item) => (item.product?.id || item.id) !== productId);
+            if (!userId) localStorage.setItem('cart', JSON.stringify(updatedItems));
+            return updatedItems;
+        });
+
+        pendingUpdates.current[productId] = 0;
+        scheduleSync();
+    };
 
 
     /* ------------- fetch endereços ------------ */
@@ -43,7 +165,7 @@ export default function CheckoutPage() {
             setLoading(true);
             const res = await fetch(`${API_BASE_URL}/address/user/${userId}`);
             if (res.ok) {
-                const data = await res.json(); // supondo array
+                const data = await res.json();
                 setAddresses(data);
                 setSelected(data[0] || null);
             }
@@ -102,62 +224,37 @@ export default function CheckoutPage() {
         }
         fetchCidades();
     }, [form.state, estados]);
-    /*
-        // Buscar produtos do carrinho do usuário
-        useEffect(() => {
-            async function fetchCartProducts() {
-                if (!userId) return;
-                setLoading(true);
-                try {
-                    const res = await fetch(`${API_BASE_URL}/cart-item/${userId}`);
-                    if (res.ok) {
-                        const data = await res.json();
-                        // mapear para um formato mais simples para o front
-                        const produtosFormatados = data.map((item) => ({
-                            id: item.id,
-                            nome: item.product.name,
-                            preco: Number(item.product.price),
-                            quantidade: item.quantity,
-                            imagem: item.product.imageUrl || '/img.jpg', // adapta caso não tenha imagem
-                        }));
-                        setProdutos(produtosFormatados);
-                    } else {
-                        setProdutos([]);
-                    }
-                } catch (error) {
-                    console.error('Erro ao buscar carrinho:', error);
-                    setProdutos([]);
-                }
-                setLoading(false);
-            }
-            fetchCartProducts();
-        }, [userId]);*/
 
     const handlePayment = async () => {
-        // Reutiliza a validação de endereço que você já tem
         if (!selected) {
             setMessage({ type: 'error', text: 'Por favor, escolha um endereço de entrega.' });
             return;
         }
 
-        // Formata os produtos para o formato que o backend espera
-        const items = produtos.map(p => ({
-            id: String(p.productId),
-            quantity: p.quantidade
-        }));
+        const items = cartItems.map(p => {
+            const product = p.product || p; 
+            return {
+                id: String(product.id), 
+                quantity: p.quantity
+            };
+        });
 
         console.log('Enviando para o backend:', { items });
         setIsPaymentLoading(true);
         try {
             const response = await axios.post(`${API_BASE_URL}/payment/create`, { items });
-            // Assume que seu backend retorna um objeto com a propriedade "id"
+
             if (response.data.id) {
                 setPreferenceId(response.data.id);
+                setIsPaymentLoading(false);
+                setMessage({ type: 'success', text: 'Pagamento gerado com sucesso.' });
+            } else {
+                setMessage({ type: 'error', text: 'Não foi possível gerar a preferência de pagamento.' });
+                setIsPaymentLoading(false);
             }
         } catch (error) {
             console.error("Erro ao criar preferência de pagamento:", error);
             setMessage({ type: 'error', text: 'Não foi possível iniciar o pagamento. Tente novamente.' });
-        } finally {
             setIsPaymentLoading(false);
         }
     };
@@ -165,91 +262,10 @@ export default function CheckoutPage() {
 
 
     /* ------------- helpers endereço ------------ */
-    const handleRemove = async (id) => {
+    const handleRemoveAddress = async (id) => {
         await fetch(`${API_BASE_URL}/address/${id}`, { method: 'DELETE' });
         setAddresses((prev) => prev.filter((a) => a.id !== id));
         if (selected?.id === id) setSelected(null);
-    };
-
-    /* --------- Buscar produtos do carrinho --------- */
-    useEffect(() => {
-        async function fetchCartProducts() {
-            if (!userId) return;
-            setLoading(true);
-            try {
-                const res = await fetch(`${API_BASE_URL}/cart-item/${userId}`);
-                if (res.ok) {
-                    const data = await res.json();
-                    const produtosFormatados = data.map((item) => ({
-                        id: item.id,               // ID do item no carrinho
-                        productId: item.product.id, // ID do produto
-                        nome: item.product.description,
-                        preco: Number(item.product.price),
-                        quantidade: item.quantity,
-                        imagem: item.product.imageUrl || '/img.jpg',
-                    }));
-                    setProdutos(produtosFormatados);
-                } else {
-                    setProdutos([]);
-                }
-            } catch (error) {
-                console.error('Erro ao buscar carrinho:', error);
-                setProdutos([]);
-            }
-            setLoading(false);
-        }
-        fetchCartProducts();
-    }, [userId]);
-
-
-    /* --------- Remover produto no backend --------- */
-    const removerProduto = async (itemId) => {
-        try {
-            const res = await fetch(`${API_BASE_URL}/cart/remove/${itemId}`, {
-                method: 'DELETE',
-            });
-            if (res.ok) {
-                setProdutos((produtosAntigos) => produtosAntigos.filter((p) => p.id !== itemId));
-            } else {
-                console.error('Falha ao remover produto');
-            }
-        } catch (err) {
-            console.error('Erro ao remover produto:', err);
-        }
-    };
-
-    const finalizarPedido = async () => {
-        if (!selected) {
-            setMessage({ type: 'error', text: 'Escolha um endereço antes de finalizar o pedido.' });
-            return;
-        }
-
-        const pedido = {
-            userId,
-            addressId: selected.id,
-            items: produtos.map((p) => ({
-                productId: p.id,
-                quantity: p.quantidade,
-            })),
-        };
-
-        try {
-            const res = await fetch(`${API_BASE_URL}/order/create`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(pedido),
-            });
-
-            if (res.ok) {
-                const data = await res.json();
-                setMessage({ type: 'success', text: `Pedido ${data.orderNumber || data.id} criado com sucesso!` });
-            } else {
-                const err = await res.json();
-                setMessage({ type: 'error', text: err.message || 'Erro ao criar pedido.' });
-            }
-        } catch (error) {
-            setMessage({ type: 'error', text: `Erro na rede: ${error.message}` });
-        }
     };
 
     const finalizarViaWhatsapp = () => {
@@ -258,14 +274,14 @@ export default function CheckoutPage() {
             return;
         }
 
-        const textoProdutos = produtos
-            .map((p) => `- ${p.nome.slice(0, 100)} (${p.quantidade}x) R$ ${p.preco.toFixed(2).replace('.', ',')}`)
+        const textoProdutos = cartItems
+            .map((p) => `- ${(p.product?.description || '').slice(0, 100)} (${p.quantity}x) R$ ${p.product?.price.replace('.', ',')}`)
             .join('\n');
 
         const textoEndereco = `${selected.street}, ${selected.city} - ${selected.state}, ${selected.zipCode}`;
 
         const mensagem = encodeURIComponent(
-            `Olá, gostaria de fazer o pedido:\n${textoProdutos}\n\nEndereço de entrega:\n${textoEndereco}\n\nTotal: R$ ${total.toFixed(2).replace('.', ',')}`
+            `Olá, gostaria de fazer o pedido:\n${textoProdutos}\n\nEndereço de entrega:\n${textoEndereco}\n\nTotal: R$ ${subtotal.toFixed(2).replace('.', ',')}`
         );
 
         const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -281,8 +297,25 @@ export default function CheckoutPage() {
 
 
 
-    /* --------- Cálculo total --------- */
-    const total = produtos.reduce((acc, p) => acc + p.preco * p.quantidade, 0);
+    /* --------- CÁLCULOS REATIVOS --------- */
+    const { subtotal, totalDiscount } = useMemo(() => {
+        let sub = 0;
+        let discount = 0;
+
+        for (const item of cartItems) {
+            const product = item.product || item;
+            const itemSubtotal = product.price * item.quantity;
+            sub += itemSubtotal;
+
+            if (product.discount > 0) {
+                const itemDiscount = itemSubtotal * (product.discount / 100);
+                discount += itemDiscount;
+            }
+        }
+        return { subtotal: sub, totalDiscount: discount };
+    }, [cartItems]);
+
+    const totalFinal = (subtotal - totalDiscount) + frete;
 
     const handleAdd = async (e) => {
         e.preventDefault();
@@ -309,85 +342,138 @@ export default function CheckoutPage() {
         }
     };
 
-    const alterarQuantidade = (id, delta) => {
-        setProdutos((prod) =>
-            prod.map((p) =>
-                p.id === id ? { ...p, quantidade: Math.max(1, p.quantidade + delta) } : p
-            )
-        );
-    };
-
     document.title = 'Checkout'
+
+    if (loading) return <Loading />;
 
     return (
         <div className="font-sans space-y-8 min-h-screen bg-white text-zinc-800">
-            {loading && <LoadingCircles />}
+            {loading && <Loading />}
             {message && (
                 <Message type={message.type} message={message.text} onClose={() => setMessage(null)} />
             )}
 
             <HeaderVariant />
 
-            {/* --- Endereço + Resumo --- */}
-            <div className="flex flex-col md:flex-row md:justify-between gap-6 p-6 bg-zinc-50 border border-zinc-200 rounded shadow">
-                <section className="flex-1 max-w-md bg-white p-6 rounded shadow">
-                    <h2 className="text-2xl font-semibold mb-4">Endereço de entrega</h2>
-                    {selected ? (
-                        <>
-                            <p className="text-lg font-medium">{selected.user?.name} {selected.user?.phone}</p>
-                            <p className="text-sm text-zinc-600">
-                                {selected.street}, {selected.city} - {selected.state}, {selected.zipCode}
-                            </p>
-                        </>
+            <div className="flex flex-col md:flex-row md:justify-between gap-6 p-6 bg-white rounded">
+
+                <section className="flex-1 bg-white p-6 rounded shadow border border-gray-300">
+                    <h2 className="text-2xl font-bold text-gray-800 mb-5">Endereço de entrega</h2>
+
+                    {addresses?.length ? (
+                        <ul className="space-y-4">
+                            {addresses.map((address, index) => {
+                                const isSelected = selected?.id === address.id;
+                                return (
+                                    <li
+                                        key={index}
+                                        onClick={() => { setSelected(address) }}
+                                        className={`flex justify-between items-center p-4 rounded border transition-all cursor-pointer ${isSelected
+                                            ? 'border-pink-300 bg-pink-50'
+                                            : 'border-gray-200 hover:border-gray-300'
+                                            }`}
+                                    >
+                                        <div>
+                                            <p className="text-sm text-gray-600 leading-relaxed">
+                                                {address.street}, {address.city} - {address.state}, {address.zipCode}
+                                            </p>
+                                            {isSelected && (
+                                                <span className="inline-block mt-2 text-xs font-semibold text-pink-600 bg-pink-100 rounded px-2 py-0.5">
+                                                    Selecionado
+                                                </span>
+                                            )}
+
+                                        </div>
+
+                                        <button
+                                            onClick={() => handleRemoveAddress(address.id)}
+                                            className="text-red-500 hover:text-red-700 cursor-pointer"
+                                        >
+                                            <HiTrash />
+                                        </button>
+                                    </li>
+                                );
+                            })}
+                        </ul>
                     ) : (
-                        <p className="text-sm text-zinc-500">Nenhum endereço cadastrado.</p>
+                        <p className="text-sm text-gray-500 italic">Nenhum endereço cadastrado.</p>
                     )}
+
                     <button
                         onClick={() => setShowModal(true)}
-                        className="mt-6 bg-pink-300 hover:bg-pink-400 text-black px-5 py-2 rounded font-semibold transition cursor-pointer"
+                        className="mt-6 w-full bg-pink-300 hover:bg-pink-400 text-black cursor-pointer text-sm font-semibold py-2.5 rounded transition-all duration-200 shadow-sm"
                     >
-                        Alterar
+                        Adicionar endereço
                     </button>
                 </section>
 
-                <section className="max-w-xs bg-white p-6 rounded shadow flex flex-col justify-between">
+
+                <section className="w-[35%] min-h-[300px] bg-white p-6 rounded shadow flex flex-col justify-between border border-gray-300">
                     <h2 className="text-2xl font-semibold mb-6">Resumo</h2>
                     <div>
-                        <div className="flex justify-between text-lg font-semibold mb-1">
-                            <span>Total</span>
-                            <span>R$ {total.toFixed(2).replace('.', ',')}</span>
+                        <div className="flex justify-between text-sm text-zinc-600">
+                            <span>Subtotal ({cartItems.length} iten(s))</span>
+                            <span>R$ {subtotal.toFixed(2)}</span>
                         </div>
-                        {/* Adicione uma linha de subtotal ou frete se desejar */}
+                        <div className="flex justify-between text-sm text-zinc-600">
+                            <span>Frete</span>
+                            <span>R$ {frete.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between text-sm font-semibold text-green-600">
+                            <span>Desconto</span>
+                            <span>- R$ {(totalDiscount).toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between text-lg font-bold mt-4 border-t pt-2">
+                            <span>Total</span>
+                            <span>R$ {totalFinal.toFixed(2)}</span>
+                        </div>
                     </div>
 
                     <div className="mt-6 space-y-3">
-                        {/* SE O BOTÃO DE PAGAMENTO AINDA NÃO FOI GERADO */}
-                        {!preferenceId && (
-                            <>
-                                <button
-                                    onClick={handlePayment}
-                                    disabled={isPaymentLoading || produtos.length === 0}
-                                    className="w-full bg-cyan-500 hover:bg-cyan-600 text-white px-5 py-3 rounded font-semibold transition cursor-pointer disabled:bg-zinc-400"
-                                >
-                                    {isPaymentLoading ? 'Gerando pagamento...' : 'Pagar com Cartão / Pix'}
-                                </button>
+                        <div className='w-full flex justify-center items-center'>
+                            <PulseLoader
+                                loading={isPaymentLoading}
+                                color='#fba6d4'
+                            />
+                        </div>
 
-                                <button
-                                    onClick={finalizarViaWhatsapp}
-                                    disabled={produtos.length === 0}
-                                    className="w-full bg-green-500 hover:bg-green-600 text-white px-5 py-3 rounded font-semibold transition cursor-pointer disabled:bg-zinc-400"
-                                >
-                                    Finalizar via WhatsApp
-                                </button>
-                            </>
-                        )}
 
                         {/* QUANDO O ID DA PREFERÊNCIA EXISTIR, RENDERIZE O BOTÃO DO MERCADO PAGO */}
                         {preferenceId && (
                             <Wallet
                                 initialization={{ preferenceId: preferenceId }}
                                 customization={{ texts: { valueProp: 'smart_option' } }}
+                                onSubmit={() => {
+
+                                }}
+                                onReady={() => {
+
+                                }}
+                                onError={() => {
+
+                                }}
                             />
+                        )}
+
+                        {/* SE O BOTÃO DE PAGAMENTO AINDA NÃO FOI GERADO */}
+                        {!preferenceId && !isPaymentLoading && (
+                            <>
+                                <button
+                                    onClick={handlePayment}
+                                    disabled={isPaymentLoading || cartItems.length === 0}
+                                    className="w-full bg-cyan-500 hover:bg-cyan-600 text-white px-5 py-3 rounded font-semibold transition cursor-pointer disabled:bg-zinc-400"
+                                >
+                                    {isPaymentLoading ? 'Gerando pagamento...' : 'Gerar pagamento'}
+                                </button>
+
+                                <button
+                                    onClick={finalizarViaWhatsapp}
+                                    disabled={cartItems.length === 0}
+                                    className="w-full bg-green-500 hover:bg-green-600 text-white px-5 py-3 rounded font-semibold transition cursor-pointer disabled:bg-zinc-400"
+                                >
+                                    Finalizar via WhatsApp
+                                </button>
+                            </>
                         )}
                     </div>
                 </section>
@@ -399,38 +485,12 @@ export default function CheckoutPage() {
                     <div className="bg-white rounded-lg shadow-lg w-full max-w-lg p-6 relative">
                         <button
                             onClick={() => setShowModal(false)}
-                            className="absolute top-3 right-3 text-zinc-500 hover:text-zinc-700"
+                            className="absolute top-3 right-3 text-zinc-500 cursor-pointer hover:text-zinc-700"
                         >
                             <HiX size={24} />
                         </button>
 
-                        <h3 className="text-xl font-semibold mb-4">Meus endereços</h3>
-                        <ul className="space-y-2 max-h-40 overflow-auto">
-                            {addresses.map((addr) => (
-                                <li
-                                    key={addr.id}
-                                    className="border rounded p-3 flex justify-between items-start"
-                                >
-                                    <label className="flex-1 cursor-pointer text-zinc-800">
-                                        <input
-                                            type="radio"
-                                            checked={selected?.id === addr.id}
-                                            onChange={() => setSelected(addr)}
-                                            className="mr-2"
-                                        />
-                                        {addr.street}, {addr.city} - {addr.state}
-                                    </label>
-                                    <button
-                                        onClick={() => handleRemove(addr.id)}
-                                        className="text-red-500 hover:text-red-700 cursor-pointer"
-                                    >
-                                        <HiTrash />
-                                    </button>
-                                </li>
-                            ))}
-                        </ul>
-
-                        <h4 className="text-lg font-semibold mt-6 mb-3">Adicionar endereço</h4>
+                        <h3 className="text-lg font-semibold mt-6 mb-3">Adicionar endereço</h3>
                         <form onSubmit={handleAdd} className="grid grid-cols-2 gap-4 text-sm">
                             <input
                                 required
@@ -487,48 +547,46 @@ export default function CheckoutPage() {
             )}
 
             {/* --- Produtos no carrinho --- */}
-            <section className="bg-zinc-50 border border-zinc-200 rounded p-6 shadow mx-6">
-                <h2 className="text-xl font-semibold mb-4">Produtos ({produtos.length})</h2>
-                {produtos.map((p) => (
-                    <div
-                        key={p.id}
-                        className="flex items-center gap-4 border-b last:border-b-0 py-4"
-                    >
-                        <img
-                            src={p.imagem}
-                            alt={p.nome}
-                            className="w-20 h-20 object-contain rounded"
-                        />
-                        <div className="flex-1">
-                            <p className="text-zinc-800 text-sm">{p.nome}</p>
-                            <p className="font-semibold mt-1">
-                                R$ {p.preco.toFixed(2).replace('.', ',')}
-                            </p>
-                        </div>
-                        <div className="flex items-center gap-2 border rounded px-2 py-1">
-                            <button
-                                onClick={() => alterarQuantidade(p.id, -1)}
-                                className="text-pink-500 hover:text-pink-700 cursor-pointer"
-                            >
-                                <HiMinus />
+            <section className="border border-gray-300 rounded p-6 shadow mx-6">
+                <div className="flex items-center gap-2 mb-4">
+                    <h2 className="text-xl font-semibold">Produtos ({cartItems.length})</h2>
+                    {isSyncing && (
+                        <span className="flex items-center gap-1 text-sm text-gray-500">
+                            <HiOutlineCloudArrowUp className="animate-pulse" /> Salvando...
+                        </span>
+                    )}
+                </div>
+                {cartItems.map((item) => {
+                    const product = item.product;
+                    const productId = product.id;
+                    return (
+                        <div key={product.id} className="flex items-center gap-4 border-b last:border-b-0 py-4">
+                            <img
+                                src={product.imageUrl}
+                                alt={product.description}
+                                className="w-20 h-20 object-contain rounded"
+                            />
+                            <div className="flex-1">
+                                <p className="text-zinc-800 text-sm">{product.description}</p>
+                                <p className="font-semibold mt-1">
+                                    R$ {product.price}
+                                </p>
+                            </div>
+                            <div className="flex items-center gap-2 border rounded px-2 py-1">
+                                <button className='cursor-pointer' onClick={() => handleUpdateQuantity(productId, item.quantity - 1)}>
+                                    <HiMinus />
+                                </button>
+                                <span>{item.quantity}</span>
+                                <button className='cursor-pointer' onClick={() => handleUpdateQuantity(productId, item.quantity + 1)}>
+                                    <HiPlus />
+                                </button>
+                            </div>
+                            <button className='cursor-pointer' onClick={() => handleRemove(productId)}>
+                                <HiTrash size={20} />
                             </button>
-                            <span>{p.quantidade}</span>
-                            <button
-                                onClick={() => alterarQuantidade(p.id, 1)}
-                                className="text-pink-500 hover:text-pink-700 cursor-pointer"
-                            >
-                                <HiPlus />
-                            </button>
                         </div>
-                        <button
-                            onClick={() => removerProduto(p.id)}
-                            className="text-gray-400 hover:text-red-500 cursor-pointer"
-                            aria-label="Remover produto"
-                        >
-                            <HiTrash size={20} />
-                        </button>
-                    </div>
-                ))}
+                    )
+                })}
             </section>
 
             <Footer />
