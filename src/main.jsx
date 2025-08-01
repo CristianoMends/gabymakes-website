@@ -3,6 +3,9 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App'
 import { GoogleOAuthProvider } from '@react-oauth/google';
+import { initMercadoPago, Wallet } from '@mercadopago/sdk-react';
+
+initMercadoPago(import.meta.env.VITE_MERCADO_PAGO_PUBLIC_KEY);
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

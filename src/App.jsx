@@ -12,7 +12,6 @@ import AdminRoute from './components/adminRoute';
 import CheckoutPage from './pages/checkoutPage'
 import SearchResult from './pages/searchResult'
 
-
 function App() {
     return (
         <Router>
@@ -33,7 +32,11 @@ function App() {
                 />
 
                 <Route path='/checkout/:userId' element={<CheckoutPage />} />
+                <Route path="/payment/success" element={<PaymentSuccessPage />} />
+                <Route path="/payment/failure" element={<PaymentFailurePage />} />
+
                 <Route path="produtos/:id" element={<ProductDetailPage />} />
+                <Route path="produtos" element={<SearchResult />} />
                 <Route path="*" element={<PageNotFound />} />
             </Routes>
             <MessageContainer />

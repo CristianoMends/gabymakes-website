@@ -5,6 +5,8 @@ import LoadingCircles from '../components/loading';
 import Message from '../components/message';
 import HeaderVariant from '../components/header-variant';
 import Footer from '../components/footer';
+import { initMercadoPago, Wallet } from '@mercadopago/sdk-react';
+import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -23,6 +25,9 @@ export default function CheckoutPage() {
         zipCode: '',
     });
     const [message, setMessage] = useState(null);
+
+    const [preferenceId, setPreferenceId] = useState(null);
+    const [isPaymentLoading, setIsPaymentLoading] = useState(false);
 
     /* para selects */
     const [estados, setEstados] = useState([]);
@@ -127,6 +132,36 @@ export default function CheckoutPage() {
             }
             fetchCartProducts();
         }, [userId]);*/
+
+    const handlePayment = async () => {
+        // Reutiliza a validação de endereço que você já tem
+        if (!selected) {
+            setMessage({ type: 'error', text: 'Por favor, escolha um endereço de entrega.' });
+            return;
+        }
+
+        // Formata os produtos para o formato que o backend espera
+        const items = produtos.map(p => ({
+            id: String(p.productId),
+            quantity: p.quantidade
+        }));
+
+        console.log('Enviando para o backend:', { items });
+        setIsPaymentLoading(true);
+        try {
+            const response = await axios.post(`${API_BASE_URL}/payment/create`, { items });
+            // Assume que seu backend retorna um objeto com a propriedade "id"
+            if (response.data.id) {
+                setPreferenceId(response.data.id);
+            }
+        } catch (error) {
+            console.error("Erro ao criar preferência de pagamento:", error);
+            setMessage({ type: 'error', text: 'Não foi possível iniciar o pagamento. Tente novamente.' });
+        } finally {
+            setIsPaymentLoading(false);
+        }
+    };
+
 
 
     /* ------------- helpers endereço ------------ */
@@ -317,23 +352,44 @@ export default function CheckoutPage() {
 
                 <section className="max-w-xs bg-white p-6 rounded shadow flex flex-col justify-between">
                     <h2 className="text-2xl font-semibold mb-6">Resumo</h2>
-                    <div className="flex justify-between text-lg font-semibold mb-1">
-                        <span>Total</span>
-                        <span>R$ {total.toFixed(2).replace('.', ',')}</span>
+                    <div>
+                        <div className="flex justify-between text-lg font-semibold mb-1">
+                            <span>Total</span>
+                            <span>R$ {total.toFixed(2).replace('.', ',')}</span>
+                        </div>
+                        {/* Adicione uma linha de subtotal ou frete se desejar */}
                     </div>
-                    {/*<p className="text-xs text-zinc-600 mb-6">ou 3x de R$ {(total / 3).toFixed(2).replace('.', ',')} sem juros</p>*/}
-                    {/* <button
-                        onClick={finalizarPedido}
-                        className="mb-3 bg-pink-300 hover:bg-pink-400 text-black px-5 py-2 rounded font-semibold transition cursor-pointer"
-                    >
-                        Finalizar pedido
-                    </button> */}
-                    <button
-                        onClick={finalizarViaWhatsapp}
-                        className="bg-pink-300 hover:bg-pink-400 text-black px-5 py-2 rounded font-semibold transition cursor-pointer"
-                    >
-                        Finalizar via WhatsApp
-                    </button>
+
+                    <div className="mt-6 space-y-3">
+                        {/* SE O BOTÃO DE PAGAMENTO AINDA NÃO FOI GERADO */}
+                        {!preferenceId && (
+                            <>
+                                <button
+                                    onClick={handlePayment}
+                                    disabled={isPaymentLoading || produtos.length === 0}
+                                    className="w-full bg-cyan-500 hover:bg-cyan-600 text-white px-5 py-3 rounded font-semibold transition cursor-pointer disabled:bg-zinc-400"
+                                >
+                                    {isPaymentLoading ? 'Gerando pagamento...' : 'Pagar com Cartão / Pix'}
+                                </button>
+
+                                <button
+                                    onClick={finalizarViaWhatsapp}
+                                    disabled={produtos.length === 0}
+                                    className="w-full bg-green-500 hover:bg-green-600 text-white px-5 py-3 rounded font-semibold transition cursor-pointer disabled:bg-zinc-400"
+                                >
+                                    Finalizar via WhatsApp
+                                </button>
+                            </>
+                        )}
+
+                        {/* QUANDO O ID DA PREFERÊNCIA EXISTIR, RENDERIZE O BOTÃO DO MERCADO PAGO */}
+                        {preferenceId && (
+                            <Wallet
+                                initialization={{ preferenceId: preferenceId }}
+                                customization={{ texts: { valueProp: 'smart_option' } }}
+                            />
+                        )}
+                    </div>
                 </section>
             </div>
 

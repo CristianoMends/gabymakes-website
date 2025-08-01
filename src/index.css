@@ -1,18 +1,49 @@
 @import "tailwindcss";
 
 body {
-  font-family: 'Poppins', ui-sans-serif, system-ui;
+    font-family: 'Poppins', ui-sans-serif, system-ui;
 }
 
 @keyframes gradient-spin {
     from {
         transform: rotate(0deg);
     }
+
     to {
         transform: rotate(360deg);
     }
 }
 
 .animate-gradient-spin {
-    animation: gradient-spin 1.2s linear infinite; 
+    animation: gradient-spin 1.2s linear infinite;
+}
+
+/* Para navegadores baseados em WebKit (Chrome, Edge, Safari, Opera) */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: #ffe4ec;
+    /* rosa claro */
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: #ec4899;
+    /* rosa Tailwind (rose-500) */
+    border-radius: 6px;
+    border: 2px solid #ffe4ec;
+    /* cor do fundo para efeito de borda */
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: #db2777;
+    /* rosa mais escuro no hover */
+}
+
+/* Para Firefox */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: #ec4899 #ffe4ec;
 }

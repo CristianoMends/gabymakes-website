@@ -5,10 +5,10 @@ import Footer from '../components/footer';
 import Breadcrumb from '../components/breadcrumb';
 import LoadingCircles from '../components/loading';
 import Message from '../components/message';
-
-
+import { useNavigate } from 'react-router-dom';
 import InnerImageZoom from 'react-inner-image-zoom';
 import 'react-inner-image-zoom/lib/styles.min.css'
+import ConfirmationModal from '../components/confirmationModal';
 
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
@@ -22,6 +22,10 @@ export default function ProductDetailPage() {
   const [quantity, setQuantity] = useState(1);
   const [error, setError] = useState(null);
   const [message, setMessage] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  const navigate = useNavigate();
+  const [confirmation, setConfirmation] = useState(false);
 
   /* dados de login */
   const [userId, setUserId] = useState(null);
@@ -54,11 +58,14 @@ export default function ProductDetailPage() {
       try {
         const currentUser = JSON.parse(currentUserString);
         setUserId(currentUser.id || null);
+        setIsLoggedIn(true);
       } catch {
         setUserId(null);
+        setIsLoggedIn(false);
       }
     } else {
       setUserId(null);
+      setIsLoggedIn(false);
     }
   }, []);
 
@@ -133,6 +140,18 @@ export default function ProductDetailPage() {
       <meta property="og:price:currency" content="BRL" />
 
 
+      {confirmation && (
+        <ConfirmationModal
+          title='Usuário não autenticado!'
+          message='Para adicionar ao carrinho, você precisa estar logado.'
+          onConfirm={() => navigate('/login')}
+          onCancel={() => setConfirmation(false)}
+          confirmText='Ir para Login'
+          cancelText='Cancelar'
+        />
+      )}
+
+
       <Header />
       <main className="max-w-6xl mx-auto px-4 py-10">
         <Breadcrumb />
@@ -187,7 +206,11 @@ export default function ProductDetailPage() {
                 comprar agora
               </button>*/}
               <button
-                onClick={handleAddToCart}
+                onClick={
+                  isLoggedIn
+                    ? handleAddToCart
+                    : () => { setConfirmation(true) }
+                }
                 className="bg-[#FFA5BD] cursor-pointer text-white px-6 py-2 rounded shadow hover:bg-[#ff8cae] transition-colors duration-300"
               >
                 adicionar à sacola
