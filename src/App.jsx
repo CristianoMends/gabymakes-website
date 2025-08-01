@@ -32,6 +32,9 @@ function App() {
                 />
 
                 <Route path='/checkout/:userId' element={<CheckoutPage />} />
+                <Route path="/payment/success" element={<PaymentSuccessPage />} />
+                <Route path="/payment/failure" element={<PaymentFailurePage />} />
+
                 <Route path="produtos/:id" element={<ProductDetailPage />} />
                 <Route path="produtos" element={<SearchResult />} />
                 <Route path="*" element={<PageNotFound />} />
