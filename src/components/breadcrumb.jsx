@@ -1,8 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 
-export default function Breadcrumb() {
+export default function Breadcrumb({ customLast }) {
     const location = useLocation();
-
     const pathnames = location.pathname.split('/').filter((x) => x);
 
     return (
@@ -15,6 +14,7 @@ export default function Breadcrumb() {
                 {pathnames.map((segment, index) => {
                     const routeTo = '/' + pathnames.slice(0, index + 1).join('/');
                     const isLast = index === pathnames.length - 1;
+
                     return (
                         <li key={routeTo}>
                             {!isLast ? (
@@ -25,7 +25,9 @@ export default function Breadcrumb() {
                                     <span className="px-1 text-gray-400">&gt;</span>
                                 </>
                             ) : (
-                                <span className="text-gray-500 capitalize">{decodeURIComponent(segment)}</span>
+                                <span className="text-gray-500 capitalize">
+                                    {customLast ? customLast : decodeURIComponent(segment)}
+                                </span>
                             )}
                         </li>
                     );

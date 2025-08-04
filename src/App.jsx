@@ -13,6 +13,8 @@ import CheckoutPage from './pages/checkoutPage'
 import SearchResult from './pages/searchResult'
 import PaymentSuccessPage from './pages/PaymentSuccessPage';
 import PaymentFailurePage from './pages/paymentFailurePage';
+import UserRoute from './components/userRoute'
+import BuyNowPage from './pages/BuyNowPage'
 
 function App() {
     return (
@@ -23,15 +25,22 @@ function App() {
                 <Route path="cadastro" element={<RegisterPage />} />
                 <Route path="sobre" element={<AboutPage />} />
                 <Route path="busca" element={<SearchResult />} />
-                <Route path="user/:id" element={<UserPage />} />
+                <Route path="admin" element={
+                    <AdminRoute>
+                        <AdminPage />
+                    </AdminRoute>
+                } />
+
                 <Route
-                    path="admin"
+                    path="user/:id"
                     element={
-                        <AdminRoute>
-                            <AdminPage />
-                        </AdminRoute>
+                        <UserRoute>
+                            <UserPage />
+                        </UserRoute>
                     }
                 />
+
+                <Route path='/buynow/:userId' element={<BuyNowPage />} />                
 
                 <Route path='/checkout/:userId' element={<CheckoutPage />} />
                 <Route path="/payment/success" element={<PaymentSuccessPage />} />

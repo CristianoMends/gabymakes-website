@@ -29,6 +29,14 @@ export default function Header() {
             const accessToken = localStorage.getItem('accessToken');
             const currentUserString = localStorage.getItem('currentUser');
 
+            if (isTokenExpired(accessToken)) {
+                localStorage.removeItem('accessToken');
+                localStorage.removeItem('currentUser');
+                setIsLoggedIn(false);
+                setUserName('')
+                setUserId(null)
+            }
+
             if (accessToken && currentUserString) {
                 setIsLoggedIn(true);
                 try {
@@ -80,6 +88,25 @@ export default function Header() {
         window.addEventListener('cartUpdated', updateCartCount);
         return () => window.removeEventListener('cartUpdated', updateCartCount);
     }, [userId]);
+
+    const isTokenExpired = (token) => {
+        if (!token) return true;
+
+        try {
+            const payloadBase64 = token.split('.')[1];
+            const payloadJson = atob(payloadBase64);
+            const payload = JSON.parse(payloadJson);
+
+            if (!payload.exp) return true;
+
+            const currentTime = Math.floor(Date.now() / 1000);
+            return currentTime >= payload.exp;
+        } catch (error) {
+            console.error("Erro ao decodificar o token:", error);
+            return true;
+        }
+    }
+
 
     const handleUserIconClick = () => {
         if (!isLoggedIn) {
@@ -175,11 +202,8 @@ export default function Header() {
                     <div
                         className="relative cursor-pointer"
                         onClick={() => {
-                            if (!isLoggedIn) {
-                                setConfirmation(true);
-                            } else {
-                                setShowCartModal(true);
-                            }
+                            setShowCartModal(true);
+
                         }}>
                         <HiOutlineShoppingBag size={30} className="text-gray-800" />
                         {cartItemCount > 0 && (

@@ -6,34 +6,21 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 export default function Highlights() {
 
     const [sections, setSections] = useState([]);
-    const [allProducts, setAllProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [userId, setUserId] = useState(null);
 
-
     useEffect(() => {
-        const fetchAllProducts = async () => {
-            try {
-                const res = await fetch(`${API_URL}/products`);
-                if (!res.ok) {
-                    throw new Error(`HTTP error! status: ${res.status}`);
-                }
-                const data = await res.json();
-                setAllProducts(data);
-            } catch (err) {
-                console.error("Erro ao carregar todos os produtos:", err);
-
-            }
-        };
-        fetchAllProducts();
-
-
         const storedUserId = localStorage.getItem('userId');
         if (storedUserId) {
             setUserId(storedUserId);
         }
-    }, []);
+    })
+
+    const storedUserId = localStorage.getItem('userId');
+    if (storedUserId) {
+        setUserId(storedUserId);
+    }
 
 
     useEffect(() => {

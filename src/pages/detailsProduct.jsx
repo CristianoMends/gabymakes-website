@@ -70,13 +70,16 @@ export default function ProductDetailPage() {
   }, []);
 
   const handleBuyNow = () => {
+    if (!isLoggedIn || !userId) {
+      setConfirmation(true);
+      return;
+    }
+    const url = `/buynow/${userId}?productId=${id}&quantity=${quantity}`;
 
-
+    navigate(url);
   }
 
-  /* ------------ adicionar à sacola ------------ */
   const handleAddToCart = async () => {
-    // ... (seu código handleAddToCart continua o mesmo)
     if (!product) return;
     if (userId) {
       try {
@@ -104,13 +107,21 @@ export default function ProductDetailPage() {
       const item = cart.find(i => i.id === product.id);
       if (item) item.quantity += quantity;
       else
-        cart.push({
+
+        var localCartLength = localStorage.getItem('cart') ? JSON.parse(localStorage.getItem('cart')).length : 0;
+
+      cart.push({
+        id: localCartLength,
+        quantity: quantity,
+        product: {
           id: product.id,
           name: product.name,
           price: product.price,
           imageUrl: product.imageUrl,
-          quantity,
-        });
+          discount: product.discount,
+          description: product.description
+        },
+      });
       localStorage.setItem('cart', JSON.stringify(cart));
       window.dispatchEvent(new Event('cartUpdated'));
       setMessage({ type: 'success', text: 'Produto adicionado à sacola!' });
@@ -154,9 +165,9 @@ export default function ProductDetailPage() {
 
       <Header />
       <main className="max-w-6xl mx-auto px-4 py-10">
-        <Breadcrumb />
+        <Breadcrumb customLast={(product.description || '').slice(0, 100)} />
         <div className="grid min-h-[60vh] md:grid-cols-2 gap-10 mt-[50px]">
-          <div className="group w-50 hover:w-70 max-w-md mx-auto md:mx-0 overflow-hidden rounded">
+          <div className="group w-50 hover:w-full max-w-md mx-auto md:mx-0 overflow-hidden rounded">
             <InnerImageZoom
               src={product.imageUrl || '/default-image.jpg'}
               zoomSrc={product.imageUrl || '/default-image.jpg'}
@@ -166,6 +177,7 @@ export default function ProductDetailPage() {
               className="w-full max-w-md rounded"
             />
           </div>
+
 
           <div>
             <h1 className="text-2xl font-bold mb-2">{product.brand}</h1>
@@ -200,18 +212,14 @@ export default function ProductDetailPage() {
             </div>
 
             <div className="flex gap-4">
-              {/*<button
-                onClick={han}
-                className="bg-[#FFA5BD] cursor-pointer text-white px-6 py-2 rounded shadow hover:bg-[#ff8cae] transition-colors duration-300">
-                comprar agora
-              </button>*/}
               <button
-                onClick={
-                  isLoggedIn
-                    ? handleAddToCart
-                    : () => { setConfirmation(true) }
-                }
-                className="bg-[#FFA5BD] cursor-pointer text-white px-6 py-2 rounded shadow hover:bg-[#ff8cae] transition-colors duration-300"
+                onClick={handleBuyNow}
+                className="bg-[#FFA5BD] cursor-pointer text-black px-6 py-2 rounded shadow hover:bg-[#ff8cae] transition-colors duration-300">
+                comprar agora
+              </button>
+              <button
+                onClick={() => handleAddToCart()}
+                className="bg-[#FFA5BD] cursor-pointer text-black px-6 py-2 rounded shadow hover:bg-[#ff8cae] transition-colors duration-300"
               >
                 adicionar à sacola
               </button>

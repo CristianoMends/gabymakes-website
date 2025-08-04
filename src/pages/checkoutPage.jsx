@@ -9,6 +9,7 @@ import Footer from '../components/footer';
 import { Wallet } from '@mercadopago/sdk-react';
 import axios from 'axios';
 import { PulseLoader } from 'react-spinners';
+import ConfirmationModal from '../components/confirmationModal';
 
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
@@ -36,6 +37,7 @@ export default function CheckoutPage() {
 
     const [frete, setFrete] = useState(0);
     const [message, setMessage] = useState(null);
+    const [confirmation, setConfirmation] = useState(null);
 
     const [preferenceId, setPreferenceId] = useState(null);
     const [isPaymentLoading, setIsPaymentLoading] = useState(false);
@@ -45,33 +47,49 @@ export default function CheckoutPage() {
     const [cidades, setCidades] = useState([]);
 
     useEffect(() => {
-        const fetchAndCalculateCart = async () => {
-            setLoading(true);
-            let items = [];
-            if (userId) {
-                try {
-                    const res = await fetch(`${API_BASE_URL}/cart-item/${userId}`);
-                    if (res.ok) items = await res.json();
-                } catch (err) { console.error(err); }
-            } else {
-                items = JSON.parse(localStorage.getItem('cart')) || [];
+        setLoading(true);
+
+        if (userId) {
+
+            const fetchAndCalculateCart = async () => {
+                let items = [];
+                if (userId) {
+                    try {
+                        const res = await fetch(`${API_BASE_URL}/cart-item/${userId}`);
+                        if (res.ok) items = await res.json();
+                    } catch (err) { console.error(err); }
+                } else {
+                    items = JSON.parse(localStorage.getItem('cart')) || [];
+                }
+
+                const formattedItems = items.map(item => ({
+                    ...item,
+                    product: {
+                        ...item.product,
+                        price: Number(item.product.price),
+                        discount: Number(item.product.discount) || 0,
+                    },
+                    quantity: Number(item.quantity),
+                }));
+
+                setCartItems(formattedItems);
+                setLoading(false);
+            };
+
+            fetchAndCalculateCart();
+
+            const localCart = JSON.parse(localStorage.getItem('cart')) || [];
+
+            if (localCart.length > 0) {
+                setCartItems(cartItems, ...localCart)
             }
+        }
+        else {
 
-            const formattedItems = items.map(item => ({
-                ...item,
-                product: {
-                    ...item.product,
-                    price: Number(item.product.price),
-                    discount: Number(item.product.discount) || 0,
-                },
-                quantity: Number(item.quantity),
-            }));
-
-            setCartItems(formattedItems);
+            let items = JSON.parse(localStorage.getItem('cart'));
+            setCartItems(items);
             setLoading(false);
-        };
-
-        fetchAndCalculateCart();
+        }
     }, [userId]);
 
     const syncUpdates = async () => {
@@ -172,6 +190,11 @@ export default function CheckoutPage() {
             setLoading(false);
         }
         if (userId) fetchAddresses();
+        else {
+            const storedAddresses = JSON.parse(localStorage.getItem('addresses')) || [];
+            setAddresses(storedAddresses);
+            setSelected(storedAddresses[storedAddresses.length - 1]);
+        }
     }, [userId]);
 
     /* ------------- fetch estados IBGE ------------ */
@@ -226,15 +249,24 @@ export default function CheckoutPage() {
     }, [form.state, estados]);
 
     const handlePayment = async () => {
+        if (!userId) {
+            setConfirmation({
+                title: 'Faça login na sua conta!',
+                text: 'Para gerar pagamento, faça login na sua conta.',
+                confirmText: 'Fazer login',
+            })
+
+            return;
+        }
         if (!selected) {
             setMessage({ type: 'error', text: 'Por favor, escolha um endereço de entrega.' });
             return;
         }
 
         const items = cartItems.map(p => {
-            const product = p.product || p; 
+            const product = p.product || p;
             return {
-                id: String(product.id), 
+                id: String(product.id),
                 quantity: p.quantity
             };
         });
@@ -268,35 +300,6 @@ export default function CheckoutPage() {
         if (selected?.id === id) setSelected(null);
     };
 
-    const finalizarViaWhatsapp = () => {
-        if (!selected) {
-            setMessage({ type: 'error', text: 'Escolha um endereço antes de finalizar o pedido.' });
-            return;
-        }
-
-        const textoProdutos = cartItems
-            .map((p) => `- ${(p.product?.description || '').slice(0, 100)} (${p.quantity}x) R$ ${p.product?.price.replace('.', ',')}`)
-            .join('\n');
-
-        const textoEndereco = `${selected.street}, ${selected.city} - ${selected.state}, ${selected.zipCode}`;
-
-        const mensagem = encodeURIComponent(
-            `Olá, gostaria de fazer o pedido:\n${textoProdutos}\n\nEndereço de entrega:\n${textoEndereco}\n\nTotal: R$ ${subtotal.toFixed(2).replace('.', ',')}`
-        );
-
-        const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
-        const phone = '5588999900549';
-
-        const url = isMobile
-            ? `https://wa.me/${phone}?text=${mensagem}`
-            : `https://web.whatsapp.com/send?phone=${phone}&text=${mensagem}`;
-
-        window.open(url, '_blank');
-    };
-
-
-
     /* --------- CÁLCULOS REATIVOS --------- */
     const { subtotal, totalDiscount } = useMemo(() => {
         let sub = 0;
@@ -317,28 +320,76 @@ export default function CheckoutPage() {
 
     const totalFinal = (subtotal - totalDiscount) + frete;
 
-    const handleAdd = async (e) => {
+    const finalizarViaWhatsapp = () => {
+        if (!selected) {
+            setMessage({ type: 'error', text: 'Escolha um endereço antes de finalizar o pedido.' });
+            return;
+        }
+
+        const textoProdutos = cartItems
+            .map((p) => `- ${(p.product?.description || '').slice(0, 100)} (${p.quantity}x) R$ ${p.product?.price}`)
+            .join('\n');
+
+        const textoEndereco = `${selected.street}, ${selected.city} - ${selected.state}, ${selected.zipCode}`;
+
+        const mensagem = encodeURIComponent(
+            `Olá, gostaria de fazer o pedido:\n${textoProdutos}\n\nEndereço de entrega:\n${textoEndereco}\n\nTotal: R$ ${totalFinal.toFixed(2).replaceAll('.', ',')}`
+        );
+
+        const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+        const phone = '5588999900549';
+
+        const url = isMobile
+            ? `https://wa.me/${phone}?text=${mensagem}`
+            : `https://web.whatsapp.com/send?phone=${phone}&text=${mensagem}`;
+
+        window.open(url, '_blank');
+    };
+
+    const handleAddAddress = async (e) => {
         e.preventDefault();
 
-        const body = {
-            ...form,
-            userId: userId,
-        };
+        if (userId) {
+            const body = {
+                ...form,
+                userId: userId,
+            };
 
-        const res = await fetch(`${API_BASE_URL}/address`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body),
-        });
+            const res = await fetch(`${API_BASE_URL}/address`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body),
+            });
 
-        if (res.ok) {
-            const newAddr = await res.json();
-            setAddresses((prev) => [...prev, newAddr]);
-            setForm({ street: '', city: '', state: '', zipCode: '' });
-            setMessage({ type: 'success', text: 'Endereço salvo com sucesso!' });
+            if (res.ok) {
+                const newAddr = await res.json();
+                setAddresses((prev) => [...prev, newAddr]);
+                setForm({ street: '', city: '', state: '', zipCode: '' });
+                setMessage({ type: 'success', text: 'Endereço salvo com sucesso!' });
+            } else {
+                const err = await res.json();
+                setMessage({ type: 'error', text: err.message || 'Falha ao salvar endereço' });
+            }
         } else {
-            const err = await res.json();
-            setMessage({ type: 'error', text: err.message || 'Falha ao salvar endereço' });
+            try {
+                const existing = JSON.parse(localStorage.getItem('addresses')) || [];
+
+                const localAddress = {
+                    id: existing ? existing.length : 1,
+                    ...form,
+                };
+
+                const updated = [...existing, localAddress];
+                localStorage.setItem('addresses', JSON.stringify(updated));
+
+                setAddresses((prev) => [...prev, localAddress]);
+                setForm({ street: '', city: '', state: '', zipCode: '' });
+                setMessage({ type: 'success', text: 'Endereço salvo!' });
+            } catch (error) {
+                console.error('Erro ao salvar endereço local:', error);
+                setMessage({ type: 'error', text: 'Falha ao salvar endereço.' });
+            }
         }
     };
 
@@ -351,6 +402,17 @@ export default function CheckoutPage() {
             {loading && <Loading />}
             {message && (
                 <Message type={message.type} message={message.text} onClose={() => setMessage(null)} />
+            )}
+
+            {confirmation && (
+                <ConfirmationModal
+                    title={confirmation.title}
+                    message={confirmation.text}
+                    onConfirm={() => { confirmation.confirm || navigate('/login') }}
+                    onCancel={() => setConfirmation(null)}
+                    confirmText={confirmation.confirmText}
+                    cancelText='Cancelar'
+                />
             )}
 
             <HeaderVariant />
@@ -400,7 +462,9 @@ export default function CheckoutPage() {
                     )}
 
                     <button
-                        onClick={() => setShowModal(true)}
+                        onClick={() => {
+                            setShowModal(true)
+                        }}
                         className="mt-6 w-full bg-pink-300 hover:bg-pink-400 text-black cursor-pointer text-sm font-semibold py-2.5 rounded transition-all duration-200 shadow-sm"
                     >
                         Adicionar endereço
@@ -413,19 +477,15 @@ export default function CheckoutPage() {
                     <div>
                         <div className="flex justify-between text-sm text-zinc-600">
                             <span>Subtotal ({cartItems.length} iten(s))</span>
-                            <span>R$ {subtotal.toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between text-sm text-zinc-600">
-                            <span>Frete</span>
-                            <span>R$ {frete.toFixed(2)}</span>
+                            <span>R$ {subtotal.toFixed(2).replaceAll('.', ',')}</span>
                         </div>
                         <div className="flex justify-between text-sm font-semibold text-green-600">
                             <span>Desconto</span>
-                            <span>- R$ {(totalDiscount).toFixed(2)}</span>
+                            <span>- R$ {Number(totalDiscount).toFixed(2).replaceAll('.', ',')}</span>
                         </div>
                         <div className="flex justify-between text-lg font-bold mt-4 border-t pt-2">
                             <span>Total</span>
-                            <span>R$ {totalFinal.toFixed(2)}</span>
+                            <span>R$ {totalFinal.toFixed(2).replaceAll('.', ',')}</span>
                         </div>
                     </div>
 
@@ -461,18 +521,18 @@ export default function CheckoutPage() {
                                 <button
                                     onClick={handlePayment}
                                     disabled={isPaymentLoading || cartItems.length === 0}
-                                    className="w-full bg-cyan-500 hover:bg-cyan-600 text-white px-5 py-3 rounded font-semibold transition cursor-pointer disabled:bg-zinc-400"
+                                    className="w-full bg-cyan-500 hover:bg-cyan-600 text-black px-5 py-3 rounded font-semibold transition cursor-pointer disabled:bg-zinc-400"
                                 >
-                                    {isPaymentLoading ? 'Gerando pagamento...' : 'Gerar pagamento'}
+                                    {isPaymentLoading ? 'Gerando pagamento...' : 'Finalizar e pagar'}
                                 </button>
 
-                                <button
+                                {/*<button
                                     onClick={finalizarViaWhatsapp}
                                     disabled={cartItems.length === 0}
-                                    className="w-full bg-green-500 hover:bg-green-600 text-white px-5 py-3 rounded font-semibold transition cursor-pointer disabled:bg-zinc-400"
+                                    className="w-full bg-green-500 hover:bg-green-600 text-black px-5 py-3 rounded font-semibold transition cursor-pointer disabled:bg-zinc-400"
                                 >
                                     Finalizar via WhatsApp
-                                </button>
+                                </button>*/}
                             </>
                         )}
                     </div>
@@ -491,7 +551,7 @@ export default function CheckoutPage() {
                         </button>
 
                         <h3 className="text-lg font-semibold mt-6 mb-3">Adicionar endereço</h3>
-                        <form onSubmit={handleAdd} className="grid grid-cols-2 gap-4 text-sm">
+                        <form onSubmit={handleAddAddress} className="grid grid-cols-2 gap-4 text-sm">
                             <input
                                 required
                                 placeholder="Rua ex. Av. Paulista, 123"
