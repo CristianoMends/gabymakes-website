@@ -84,28 +84,33 @@ export default function ProductCard({ product, cloudUrl, userId }) {
         <>
             <div
                 onClick={handleCardClick}
-                className="relative group w-[300px] h-auto flex flex-col items-center border pt-4 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 bg-white cursor-pointer"
+                className="relative p-2 group w-full h-full sm:w-[280px] h-auto flex flex-col items-center justify-between border pt-4 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 cursor-pointer"
             >
-                {/*}
-                <button
-                    onClick={handleAddToCart}
-                    className="absolute cursor-pointer top-2 left-2 bg-pink-400 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 hover:bg-pink-500"
-                    aria-label="Adicionar ao carrinho"
-                >
-                    <HiOutlineShoppingBag size={24} />
-                </button>*/}
-                <div className="w-[260px] h-[190px] overflow-hidden rounded-md">
-                    <img src={imageToDisplay} alt={brand} className="w-full h-full object-contain" />
+                <div className="w-full max-h-[150px] max-sm:max-h-[100px] overflow-hidden rounded-md">
+                    <img
+                        src={imageToDisplay}
+                        alt={brand}
+                        className="w-full h-full object-contain"
+                    />
                 </div>
+
                 <div className="p-4 flex flex-col gap-2 w-full items-center text-center">
-                    <h3 className="text-lg font-medium text-gray-800 truncate max-w-full" title={brand}>{brand}</h3>
-                    <p className="text-sm text-gray-600 h-16 overflow-hidden text-ellipsis line-clamp-3">{description}</p>
+                    <h3
+                        className="text-lg font-medium text-gray-800 truncate max-w-full"
+                        title={brand}
+                    >
+                        {brand}
+                    </h3>
+                    <p className="text-sm text-gray-600 h-16 overflow-hidden text-ellipsis line-clamp-3">
+                        {description}
+                    </p>
+
                     {discount > 0 ? (
                         <div className="flex flex-col items-center">
                             <span className="text-gray-500 text-sm line-through">
                                 {formattedPrice}
                             </span>
-                            <span className="text-3xl text-pink-500 font-bold tracking-tight font-poppins">
+                            <span className="text-3xl text-pink-400 max-sm:text-2xl font-bold tracking-tight font-poppins">
                                 {formattedDiscountedPrice}
                             </span>
                             <span className="text-xs text-green-600 mt-1">
@@ -113,14 +118,13 @@ export default function ProductCard({ product, cloudUrl, userId }) {
                             </span>
                         </div>
                     ) : (
-                        <span className="text-3xl text-gray-800 font-bold tracking-tight font-poppins">
+                        <span className="text-3xl max-sm:text-2xl text-gray-800 font-bold tracking-tight font-poppins">
                             {formattedPrice}
                         </span>
                     )}
-
                 </div>
-
             </div>
+
             {message && (
                 <Message
                     type={message.type}

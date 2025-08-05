@@ -47,3 +47,13 @@ body {
     scrollbar-width: thin;
     scrollbar-color: #ec4899 #ffe4ec;
 }
+
+/* tailwind.config.js -> safelist: ["no-scrollbar"] se necessário */
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}

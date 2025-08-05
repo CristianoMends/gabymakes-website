@@ -70,16 +70,18 @@ export default function Highlights() {
                             <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">
                                 {section.title}
                             </h2>
-                            <div className="flex flex-wrap justify-center gap-6">
+                            <div className="flex md:flex-wrap justify-center max-sm:justify-start overflow-x-auto no-scrollbar gap-4 max-sm:gap-2 px-1 snap-x snap-mandatory scroll-smooth">
                                 {section.products && section.products.length > 0 ? (
                                     section.products.map(sectionProduct => (
-
-                                        <ProductCard
+                                        <div
                                             key={sectionProduct.id}
-                                            product={sectionProduct}
-                                            userId={userId}
-
-                                        />
+                                            className="flex-shrink-0 w-[45%] sm:w-[22%] snap-center"
+                                        >
+                                            <ProductCard
+                                                product={sectionProduct}
+                                                userId={userId}
+                                            />
+                                        </div>
                                     ))
                                 ) : (
                                     <p className="text-gray-500">Nenhum produto nesta seção.</p>
