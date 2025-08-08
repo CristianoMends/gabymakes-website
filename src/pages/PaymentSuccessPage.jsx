@@ -23,7 +23,7 @@ export default function PaymentSuccessPage() {
             const verifyPayment = async () => {
                 try {
                     // Chamada para um novo endpoint no seu backend
-                    const response = await axios.get(`${API_BASE_URL}/payment/status`, {
+                    const response = await axios.post(`${API_BASE_URL}/payment/status`, {
                         paymentId: paymentId,
                         userId: userId,
                         addressId: addressId,
