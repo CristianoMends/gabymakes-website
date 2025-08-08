@@ -168,6 +168,10 @@ export default function BuyNowPage() {
             const response = await axios.post(`${API_BASE_URL}/payment/create`, { items });
 
             if (response.data.id) {
+
+                localStorage.setItem('userId', userId);
+                localStorage.setItem('addressId', selectedAddress.id);
+
                 window.location.href = response.data.init_point;
                 setPreferenceId(response.data.id);
             } else {

@@ -15,14 +15,23 @@ export default function PaymentSuccessPage() {
     useEffect(() => {
         const paymentId = searchParams.get('payment_id');
         const status = searchParams.get('status');
+        const userId = localStorage.getItem('userId');
+        const addressId = localStorage.getItem('addressId');
 
         if (paymentId && status === 'approved') {
             // Função para verificar o pagamento no seu backend
             const verifyPayment = async () => {
                 try {
                     // Chamada para um novo endpoint no seu backend
-                    const response = await axios.get(`${API_BASE_URL}/payment/status/${paymentId}`);
+                    const response = await axios.get(`${API_BASE_URL}/payment/status`, {
+                        paymentId: paymentId,
+                        userId: userId,
+                        addressId: addressId,
+                    });
+
                     setPaymentDetails(response.data);
+                    localStorage.removeItem('userId');
+                    localStorage.removeItem('addressId');
                 } catch (err) {
                     setError('Não foi possível verificar seu pagamento. Entre em contato com o suporte.');
                     console.error('Erro ao verificar pagamento:', err);
