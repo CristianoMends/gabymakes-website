@@ -1,27 +1,25 @@
 import { useState } from "react";
-import { FiBox, FiStar, FiImage, FiLogOut, FiHome } from "react-icons/fi"; 
+import { FiBox, FiStar, FiImage, FiLogOut, FiHome, FiShoppingCart, FiBarChart2 } from "react-icons/fi";
 import logo from "../assets/logo-bg-transparent-1.png";
 import AdminProduct from "../components/adminProduct";
 import AdminHighlights from "../components/AdminHighlights";
 import BannerAdmin from "../components/bannerAdmin";
+import AdminOrders from "../pages/AdminOrders" // Novo componente
 import Message from "../components/message";
 import LoadingCircles from "../components/loading";
 import ConfirmationModal from "../components/confirmationModal";
 import useAuthRedirect from "../hooks/useAuthRedirect";
+import DashBoard from "../pages/Dashboard"
 
 export default function AdminPage() {
     useAuthRedirect();
 
-    const [page, setPage] = useState("products");
-
+    const [page, setPage] = useState("dashboard");
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState(null);
     const [showConfirmLogout, setShowConfirmLogout] = useState(false);
 
-
-    const handleLogout = () => {
-        setShowConfirmLogout(true);
-    };
+    const handleLogout = () => setShowConfirmLogout(true);
 
     const confirmLogout = () => {
         setShowConfirmLogout(false);
@@ -36,9 +34,7 @@ export default function AdminPage() {
         }, 500);
     };
 
-    const cancelLogout = () => {
-        setShowConfirmLogout(false);
-    };
+    const cancelLogout = () => setShowConfirmLogout(false);
 
     const renderPage = () => {
         switch (page) {
@@ -48,6 +44,10 @@ export default function AdminPage() {
                 return <AdminHighlights />;
             case "banners":
                 return <BannerAdmin />;
+            case "orders":
+                return <AdminOrders />;
+            case "dashboard":
+                return <DashBoard />;
             default:
                 return <div className="p-4">Página não encontrada</div>;
         }
@@ -55,12 +55,8 @@ export default function AdminPage() {
 
     return (
         <div className="h-screen flex bg-[#fafafa]">
+            {loading && <LoadingCircles />}
 
-            {loading && (
-                <LoadingCircles />
-            )}
-
-            {/* Mensagem */}
             {message && (
                 <Message
                     type={message.type}
@@ -82,19 +78,22 @@ export default function AdminPage() {
 
             {/* Sidebar */}
             <aside className="w-64 border-r shadow-sm bg-pink-300 flex flex-col justify-between">
-                {/* Topo com logo e botões */}
                 <div>
                     <div className="flex items-center gap-2 p-4">
                         <div className="h-20 w-full overflow-hidden ml-10 mr-10">
-                            <img
-                                src={logo}
-                                alt="GabyMakes Logo"
-                                className="h-full w-full object-fit"
-                            />
+                            <img src={logo} alt="Logo" className="h-full w-full object-fit" />
                         </div>
                     </div>
 
                     <nav className="flex flex-col gap-1 p-2 text-sm">
+                        <SidebarButton
+                            active={page === "dashboard"}
+                            onClick={() => setPage("dashboard")}
+                            icon={<FiBarChart2 className="h-4 w-4" />}
+                        >
+                            Dashboard
+                        </SidebarButton>
+
                         <SidebarButton
                             active={page === "products"}
                             onClick={() => setPage("products")}
@@ -118,28 +117,33 @@ export default function AdminPage() {
                         >
                             Banners
                         </SidebarButton>
+
+                        <SidebarButton
+                            active={page === "orders"}
+                            onClick={() => setPage("orders")}
+                            icon={<FiShoppingCart className="h-4 w-4" />}
+                        >
+                            Pedidos
+                        </SidebarButton>
                     </nav>
                 </div>
 
-                {/* Botões de Home e Sair */}
+                {/* Home e Logout */}
                 <div className="p-2 flex gap-2">
                     <button
                         onClick={() => (window.location.href = "/")}
                         className="flex cursor-pointer items-center justify-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded w-full"
                     >
-                        <FiHome className="h-4 w-4" />
-                        Home
+                        <FiHome className="h-4 w-4" /> Home
                     </button>
 
                     <button
                         onClick={handleLogout}
                         className="flex items-center cursor-pointer justify-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded w-full"
                     >
-                        <FiLogOut className="h-4 w-4" />
-                        Sair
+                        <FiLogOut className="h-4 w-4" /> Sair
                     </button>
                 </div>
-
             </aside>
 
             <main className="flex-1 overflow-y-scroll">{renderPage()}</main>

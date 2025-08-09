@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { FaEdit, FaTrash } from "react-icons/fa";
 import Message from "../components/message";
-import LoadingCircles from "../components/loading";
+import Loading from "../components/loading";
 import ProductPopup from "../components/ProductPopup";
 import ConfirmationModal from "../components/confirmationModal";
 
@@ -70,7 +70,7 @@ export default function AdminProductList({ onEdit }) {
 
   return (
     <div className="bg-[#fafafa]">
-      {loading && <LoadingCircles className="mb-4" />}
+      {loading && <Loading className="mb-4" />}
       {msg && (
         <Message
           type={msg.type}
