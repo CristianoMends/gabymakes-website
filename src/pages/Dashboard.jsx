@@ -183,7 +183,7 @@ export default function Dashboard() {
     if (loading) return <Loading className="mb-4" />;
 
     return (
-        <div className="p-4 space-y-10">
+        <div className="flex flex-col p-4 space-y-10">
 
             <h1 className="text-2xl font-bold mb-6">Dashboard de Vendas</h1>
 
@@ -225,8 +225,8 @@ export default function Dashboard() {
             </section>
 
             {/* Linha 2: Produtos e Categorias lado a lado - pizza charts */}
-            <section className="flex flex-wrap gap-6">
-                <div className="flex-1 min-w-[300px] max-w-[600px] h-64">
+            <section className="flex items-center justify-center flex-wrap gap-6">
+                <div className="flex-1 w-[300px] max-w-[50%] h-64">
                     <h2 className="text-lg font-semibold mb-3">Produtos Mais Vendidos</h2>
                     <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
@@ -250,7 +250,7 @@ export default function Dashboard() {
                     </ResponsiveContainer>
                 </div>
 
-                <div className="flex-1 min-w-[300px] max-w-[600px] h-64">
+                <div className="flex-1 w-[300px] max-w-[600px] h-64">
                     <h2 className="text-lg font-semibold mb-3">Categorias com Maior Volume de Vendas</h2>
                     <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
@@ -276,8 +276,8 @@ export default function Dashboard() {
             </section>
 
             {/* Linha 3: Marcas e Receita lado a lado - pizza charts */}
-            <section className="flex flex-wrap gap-6">
-                <div className="flex flex-col flex-1 min-w-[300px] max-w-[600px] h-64">
+            <section className="flex items-center justify-center flex-wrap gap-6">
+                <div className="flex flex-col flex-1 w-[300px] max-w-[600px] h-64">
                     <h2 className="text-lg font-semibold mb-3">Marcas Mais Populares</h2>
                     <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
@@ -301,7 +301,7 @@ export default function Dashboard() {
                     </ResponsiveContainer>
                 </div>
 
-                <div className="flex flex-col flex-1 min-w-[300px] max-w-[600px] h-64">
+                <div className="flex flex-col flex-1 w-[300px] max-w-[50%] h-64">
                     <h2 className="text-lg font-semibold mb-3">Produtos com Maior Receita</h2>
                     <ResponsiveContainer width="100%" height="100%">
                         <PieChart>

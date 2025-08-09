@@ -103,7 +103,7 @@ export default function AdminOrders() {
                 </div>
                 <button
                     onClick={fetchOrderById}
-                    className="bg-pink-500 text-white px-4 py-2 rounded hover:bg-pink-600 transition"
+                    className="bg-pink-300 text-black px-4 py-2 rounded hover:bg-pink-400 transition cursor-pointer"
                 >
                     Buscar
                 </button>
@@ -131,7 +131,7 @@ export default function AdminOrders() {
                 </div>
                 <button
                     onClick={fetchOrders}
-                    className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"
+                    className="bg-pink-300 text-black px-4 py-2 rounded hover:bg-pink-400 transition cursor-pointer"
                 >
                     Filtrar
                 </button>
@@ -148,12 +148,6 @@ export default function AdminOrders() {
                     <p><strong>Cliente:</strong> {order.customerName}</p>
                     <p><strong>Email:</strong> {order.customerEmail}</p>
                     <p><strong>Endereço:</strong> {order.deliveryAddress}</p>
-                    <p>
-                        <strong>Status:</strong>{" "}
-                        <span className={`${orderStatusMap[order.status]?.color} px-2 py-1 rounded`}>
-                            {orderStatusMap[order.status]?.label}
-                        </span>
-                    </p>
                     <p><strong>Criado em:</strong> {formatDate(order.createdAt)}</p>
                     <p><strong>Atualizado em:</strong> {formatDate(order.updatedAt)}</p>
                     <div className="mt-4">
