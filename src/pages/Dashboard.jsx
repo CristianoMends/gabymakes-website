@@ -177,6 +177,9 @@ export default function Dashboard() {
         fetchOrders();
     }, []);
 
+    document.title = 'Dashboard | GabyMakes Admin'
+
+
     if (loading) return <Loading className="mb-4" />;
 
     return (

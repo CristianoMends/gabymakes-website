@@ -85,6 +85,8 @@ export default function AdminOrders() {
     }, [startDate, endDate]);
 
     if (loading) return <Loading />;
+
+    document.title = 'Gerenciar Pedidos | GabyMakes Admin'
     return (
         <div className="p-4 space-y-6">
             {/* Busca por ID */}
