@@ -165,7 +165,12 @@ export default function BuyNowPage() {
         setIsPaymentLoading(true);
         try {
             const items = [{ id: String(product.id), quantity: quantity }];
-            const response = await axios.post(`${API_BASE_URL}/payment/create`, { items });
+            const body = {
+                items: items,
+                addressId: selectedAddress.id,
+                userId: userId,
+            };
+            const response = await axios.post(`${API_BASE_URL}/payment/create`, body);
 
             if (response.data.id) {
 

@@ -274,7 +274,14 @@ export default function CheckoutPage() {
         console.log('Enviando para o backend:', { items });
         setIsPaymentLoading(true);
         try {
-            const response = await axios.post(`${API_BASE_URL}/payment/create`, { items });
+
+            const body = {
+                items: items,
+                addressId: selected.id,
+                userId: userId,
+            };
+
+            const response = await axios.post(`${API_BASE_URL}/payment/create`, body);
 
             if (response.data.id) {
                 setPreferenceId(response.data.id);
