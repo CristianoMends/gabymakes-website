@@ -9,7 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import InnerImageZoom from 'react-inner-image-zoom';
 import 'react-inner-image-zoom/lib/styles.min.css'
 import ConfirmationModal from '../components/confirmationModal';
-
+import { FaWhatsapp, FaShoppingCart, FaCreditCard } from 'react-icons/fa';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -78,6 +78,28 @@ export default function ProductDetailPage() {
 
     navigate(url);
   }
+
+  const sendProductWhatsappMessage = () => {
+    if (!product) return;
+
+    const textoProduto = `🛍️ ${(product.description || '').slice(0, 100)}\nQuantidade: ${quantity}x\n💰 Preço unitário: R$ ${(product.price - (product.price * (product.discount / 100))).toFixed(2).replace('.', ',')}`;
+
+    const mensagem = encodeURIComponent(
+      `👋 Olá!\nGostaria de fazer o pedido:\n\n${textoProduto}\n\n`
+    );
+
+    const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+    const phone = '5588999900549';
+
+    const url = isMobile
+      ? `https://wa.me/${phone}?text=${mensagem}`
+      : `https://web.whatsapp.com/send?phone=${phone}&text=${mensagem}`;
+
+    window.open(url, '_blank');
+  };
+
+
 
   const handleAddToCart = async () => {
     if (!product) return;
@@ -179,16 +201,21 @@ export default function ProductDetailPage() {
           </div>
 
 
-          <div>
+          <div className='p-4 rounded w-max'>
             <h1 className="text-2xl font-bold mb-2">{product.brand}</h1>
             {/* Note que a descrição completa ainda é exibida para o usuário */}
             <p className="text-sm whitespace-pre-line mb-4">{product.description}</p>
-            <p className="text-lg font-bold mb-2">
-              R$ {product.price.toFixed(2).replace('.', ',')}
+
+            {product.discount > 0 && (
+              <p className="text-sm text-gray-500 font-bold mb-2 line-through">
+                R$ {product.price.toFixed(2).replace('.', ',')}
+              </p>
+            )}
+
+            <p className="text-[2rem] text-pink-500 font-bold mb-2">
+              R$ {(product.price - (product.price * (product.discount / 100))).toFixed(2).replace('.', ',')}
             </p>
-            <p className="text-xs text-gray-500 mb-4">
-              ou 3x de R$ {(product.price / 3).toFixed(2).replace('.', ',')} sem juros
-            </p>
+
 
             <div className="mb-6">
               <label className="block mb-2 font-semibold">Quantidade:</label>
@@ -211,17 +238,26 @@ export default function ProductDetailPage() {
               </div>
             </div>
 
-            <div className="flex gap-4">
+            <div className="flex w-full justify-between gap-4">
               <button
                 onClick={handleBuyNow}
-                className="bg-[#FFA5BD] cursor-pointer text-black px-6 py-2 rounded shadow hover:bg-[#ff8cae] transition-colors duration-300">
-                comprar agora
+                className="flex items-center flex-col w-max bg-[#FFA5BD] cursor-pointer text-black p-2 rounded shadow hover:bg-[#ff8cae] transition-colors duration-300 flex items-center"
+              >
+                <FaCreditCard /> comprar agora
               </button>
+
               <button
                 onClick={() => handleAddToCart()}
-                className="bg-[#FFA5BD] cursor-pointer text-black px-6 py-2 rounded shadow hover:bg-[#ff8cae] transition-colors duration-300"
+                className="flex items-center flex-col w-max bg-[#FFA5BD] cursor-pointer text-black p-2 rounded shadow hover:bg-[#ff8cae] transition-colors duration-300 flex items-center"
               >
-                adicionar à sacola
+                <FaShoppingCart /> adicionar à sacola
+              </button>
+
+              <button
+                onClick={() => sendProductWhatsappMessage()}
+                className="flex items-center flex-col w-max h-full bg-green-300 cursor-pointer text-black p-2 rounded shadow hover:bg-green-400 transition-colors duration-300 flex items-center"
+              >
+                <FaWhatsapp /> Comprar via WhatsApp
               </button>
             </div>
           </div>
