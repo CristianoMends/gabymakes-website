@@ -15,13 +15,7 @@ export default function Highlights() {
         if (storedUserId) {
             setUserId(storedUserId);
         }
-    })
-
-    const storedUserId = localStorage.getItem('userId');
-    if (storedUserId) {
-        setUserId(storedUserId);
-    }
-
+    }, [])
 
     useEffect(() => {
         setLoading(true);
