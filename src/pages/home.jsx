@@ -3,6 +3,7 @@ import CategoriesBar from "../components/CategoriesBar";
 import Footer from "../components/footer";
 import Header from "../components/header";
 import Highlights from "../components/Highlights";
+import { Link } from "react-router-dom";
 
 export default function Home() {
   document.title = "GabyMakes e acessórios | Loja online de cosméticos e Beleza"
@@ -23,6 +24,16 @@ export default function Home() {
         <CategoriesBar />
 
         <Banner />
+        <div className="text-center my-6 px-4 mt-[50px]">
+          <Link
+            to="/busca"
+            className="inline-block w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 bg-pink-300 text-black rounded hover:bg-pink-400 transition text-sm sm:text-base"
+          >
+            Navegar por todos os produtos
+          </Link>
+        </div>
+
+
 
         <hr className="w-11/12 mx-auto border-none" />
 

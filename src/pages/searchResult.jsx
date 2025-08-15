@@ -134,104 +134,104 @@ export default function SearchResult() {
                 <div className="container mx-auto px-4 py-6">
                     <Breadcrumb />
 
-                    <h1 className="text-2xl font-bold text-gray-800 mb-6">
-                        Você buscou por: <span className="italic font-normal text-pink-600">"{initialQuery.replaceAll('_', ' ')}"</span>
-                    </h1>
+                    {initialQuery !== '' && initialQuery && < h1 className="text-2xl font-bold text-gray-800 mb-6">
+                    Você buscou por: <span className="italic font-normal text-pink-600">"{initialQuery.replaceAll('_', ' ')}"</span>
+                </h1>}
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center mb-8 p-4 border-y border-gray-200 bg-gray-50 rounded-md shadow-sm">
-                        <div className="flex flex-wrap gap-3 justify-center md:justify-start">
-                            <select
-                                name="category"
-                                value={filters.category}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center mb-8 p-4 border-y border-gray-200 bg-gray-50 rounded-md shadow-sm">
+                    <div className="flex flex-wrap gap-3 justify-center md:justify-start">
+                        <select
+                            name="category"
+                            value={filters.category}
+                            onChange={handleFilterChange}
+                            className="border rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-400 w-full sm:w-auto"
+                        >
+                            <option value="">Todas as Categorias</option>
+                            {dynamicCategories.map(cat => (
+                                <option key={cat} value={cat}>{cat}</option>
+                            ))}
+                        </select>
+
+                        <select
+                            name="brand"
+                            value={filters.brand}
+                            onChange={handleFilterChange}
+                            className="border rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-400 w-full sm:w-auto"
+                        >
+                            <option value="">Todas as Marcas</option>
+                            {dynamicBrands.map(brand => (
+                                <option key={brand} value={brand}>{brand}</option>
+                            ))}
+                        </select>
+
+                        <div className="flex items-center gap-2 w-full sm:w-auto">
+                            <input
+                                type="number"
+                                name="priceMin"
+                                value={filters.priceMin}
                                 onChange={handleFilterChange}
-                                className="border rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-400 w-full sm:w-auto"
-                            >
-                                <option value="">Todas as Categorias</option>
-                                {dynamicCategories.map(cat => (
-                                    <option key={cat} value={cat}>{cat}</option>
-                                ))}
-                            </select>
-
-                            <select
-                                name="brand"
-                                value={filters.brand}
+                                placeholder="Preço Mín."
+                                className="border rounded-md p-2 text-sm w-1/2 focus:outline-none focus:ring-2 focus:ring-pink-400"
+                                min="0"
+                                step="0.01"
+                            />
+                            <span className="text-gray-500">-</span>
+                            <input
+                                type="number"
+                                name="priceMax"
+                                value={filters.priceMax}
                                 onChange={handleFilterChange}
-                                className="border rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-400 w-full sm:w-auto"
-                            >
-                                <option value="">Todas as Marcas</option>
-                                {dynamicBrands.map(brand => (
-                                    <option key={brand} value={brand}>{brand}</option>
-                                ))}
-                            </select>
-
-                            <div className="flex items-center gap-2 w-full sm:w-auto">
-                                <input
-                                    type="number"
-                                    name="priceMin"
-                                    value={filters.priceMin}
-                                    onChange={handleFilterChange}
-                                    placeholder="Preço Mín."
-                                    className="border rounded-md p-2 text-sm w-1/2 focus:outline-none focus:ring-2 focus:ring-pink-400"
-                                    min="0"
-                                    step="0.01"
-                                />
-                                <span className="text-gray-500">-</span>
-                                <input
-                                    type="number"
-                                    name="priceMax"
-                                    value={filters.priceMax}
-                                    onChange={handleFilterChange}
-                                    placeholder="Preço Máx."
-                                    className="border rounded-md p-2 text-sm w-1/2 focus:outline-none focus:ring-2 focus:ring-pink-400"
-                                    min="0"
-                                    step="0.01"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="text-center text-gray-700 font-medium order-first md:order-none">
-                            <p><strong>{productCount}</strong> produtos encontrados</p>
-                        </div>
-
-                        <div className="flex justify-center md:justify-end">
-                            <select
-                                value={sortOrder}
-                                onChange={handleSortChange}
-                                className="border rounded-md p-2 text-sm w-full md:w-auto focus:outline-none focus:ring-2 focus:ring-pink-400"
-                            >
-                                <option value="relevance">Ordenar por: Relevância</option>
-                                <option value="price_asc">Menor Preço</option>
-                                <option value="price_desc">Maior Preço</option>
-                            </select>
+                                placeholder="Preço Máx."
+                                className="border rounded-md p-2 text-sm w-1/2 focus:outline-none focus:ring-2 focus:ring-pink-400"
+                                min="0"
+                                step="0.01"
+                            />
                         </div>
                     </div>
 
-                    <div className="mt-8">
-                        {loading ? (
-                            <div className="flex justify-center items-center h-40">
-                                <LoadingCircles />
-                            </div>
-                        ) : error ? (
-                            <div className="flex justify-center items-center h-40 text-red-600">
-                                <Message type="error" message={error} />
-                            </div>
-                        ) : products.length > 0 ? (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                                {products.map(product => (
-                                    <ProductCard key={product.id} product={product} userId={userId} />
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="text-center text-gray-600 py-10">
-                                <p className="text-xl font-semibold mb-2">Nenhum produto encontrado para sua busca.</p>
-                                <p>Tente ajustar os filtros ou pesquisar por outro termo.</p>
-                                <Link to="/" className="text-pink-600 hover:underline mt-4 block">Voltar à página inicial</Link>
-                            </div>
-                        )}
+                    <div className="text-center text-gray-700 font-medium order-first md:order-none">
+                        <p><strong>{productCount}</strong> produtos encontrados</p>
+                    </div>
+
+                    <div className="flex justify-center md:justify-end">
+                        <select
+                            value={sortOrder}
+                            onChange={handleSortChange}
+                            className="border rounded-md p-2 text-sm w-full md:w-auto focus:outline-none focus:ring-2 focus:ring-pink-400"
+                        >
+                            <option value="relevance">Ordenar por: Relevância</option>
+                            <option value="price_asc">Menor Preço</option>
+                            <option value="price_desc">Maior Preço</option>
+                        </select>
                     </div>
                 </div>
-            </main>
-            <Footer />
+
+                <div className="mt-8">
+                    {loading ? (
+                        <div className="flex justify-center items-center h-40">
+                            <LoadingCircles />
+                        </div>
+                    ) : error ? (
+                        <div className="flex justify-center items-center h-40 text-red-600">
+                            <Message type="error" message={error} />
+                        </div>
+                    ) : products.length > 0 ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                            {products.map(product => (
+                                <ProductCard key={product.id} product={product} userId={userId} />
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="text-center text-gray-600 py-10">
+                            <p className="text-xl font-semibold mb-2">Nenhum produto encontrado para sua busca.</p>
+                            <p>Tente ajustar os filtros ou pesquisar por outro termo.</p>
+                            <Link to="/" className="text-pink-600 hover:underline mt-4 block">Voltar à página inicial</Link>
+                        </div>
+                    )}
+                </div>
         </div>
+            </main >
+        <Footer />
+        </div >
     );
 }

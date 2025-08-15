@@ -146,8 +146,9 @@ export default function BuyNowPage() {
     };
 
     const handlePayment = async () => {
-        if (!userId) {
+        if (!product) return;
 
+        if (!userId || userId === 'null' || userId === 'undefined') {
             setConfirmation({
                 title: 'Faça login na sua conta!',
                 text: 'Para gerar pagamento, faça login na sua conta.',
@@ -160,7 +161,6 @@ export default function BuyNowPage() {
             setMessage({ type: 'error', text: 'Por favor, escolha um endereço de entrega.' });
             return;
         }
-        if (!product) return;
 
         setIsPaymentLoading(true);
         try {
@@ -241,7 +241,17 @@ export default function BuyNowPage() {
                         <p className="text-sm text-gray-500 italic text-center py-4">Nenhum endereço cadastrado.</p>
                     )}
                     <button
-                        onClick={() => setShowAddressModal(true)}
+                        onClick={() => {
+                            if (!userId || userId === 'null' || userId === 'undefined') {
+                                setConfirmation({
+                                    title: 'Faça login na sua conta!',
+                                    text: 'Para Adicionar um novo endereço, faça login na sua conta.',
+                                    confirmText: 'Fazer login',
+                                    onConfirm: () => navigate('/login')
+                                }); return;
+                            }
+                            setShowAddressModal(true)
+                        }}
                         className="mt-6 w-full bg-pink-300 hover:bg-pink-400 text-black cursor-pointer text-sm font-semibold py-2.5 rounded-lg transition-all duration-200 shadow-sm">
                         Adicionar novo endereço
                     </button>

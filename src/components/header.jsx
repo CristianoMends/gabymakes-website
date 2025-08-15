@@ -202,8 +202,7 @@ export default function Header() {
                     <div
                         className="relative cursor-pointer"
                         onClick={() => {
-                            setShowCartModal(true);
-
+                            navigate(`/checkout/${userId || 'guest'}`)
                         }}>
                         <HiOutlineShoppingBag size={30} className="text-gray-800" />
                         {cartItemCount > 0 && (

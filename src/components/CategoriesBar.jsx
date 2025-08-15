@@ -19,7 +19,7 @@ export default function CategoriesBar() {
 
                 const topCategories = data
                     .filter(cat => typeof cat === 'string' && cat.trim() !== '')
-                    .slice(0, 4);
+                    .slice(0, 3);
                 setCategories(topCategories);
             } catch (err) {
                 console.error("Erro na busca de categorias para a barra:", err);

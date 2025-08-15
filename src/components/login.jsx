@@ -117,7 +117,7 @@ const LoginPopup = () => {
     };
 
     return (
-        <div className="w-full flex justify-center items-center px-4 py-10 min-h-screen bg-white">
+        <div className="w-full flex justify-center items-start px-4 py-10 min-h-screen bg-white">
             <div className="shadow-[0px_2px_8px_rgba(0,0,0,0.3)] bg-white rounded-lg p-6 sm:p-8 max-w-md w-full relative">
                 {isLoading && (
                     <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-20 rounded-lg">

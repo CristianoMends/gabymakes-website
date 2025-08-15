@@ -187,19 +187,21 @@ export default function UserPage() {
 
 
             <HeaderVariant />
-            <main className="flex flex-1 flex-col items-center py-10 px-4 md:px-10">
-                <section className="w-full bg-white p-6">
+            <main className="flex flex-1 flex-col items-center py-6 px-3 md:px-10">
+                <section className="w-full bg-white p-4 sm:p-6 rounded-lg">
                     <div className="text-center mb-8">
-                        <h1 className="text-3xl md:text-4xl font-bold text-zinc-800">
+                        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-zinc-800">
                             Olá, {userData.firstName}
                         </h1>
-                        <p className="text-sm text-zinc-500">Gerencie sua conta e seu carrinho</p>
+                        <p className="text-xs sm:text-sm text-zinc-500">
+                            Gerencie sua conta e seu carrinho
+                        </p>
                     </div>
 
                     <div className="space-y-4">
                         {/* Dados pessoais */}
-                        <div className="bg-zinc-50 border border-zinc-200 rounded-xl p-4">
-                            <h2 className="text-xl font-semibold text-zinc-800 flex items-center gap-2 mb-2">
+                        <div className="bg-zinc-50 border border-zinc-200 rounded-xl p-3 sm:p-4">
+                            <h2 className="text-lg sm:text-xl font-semibold text-zinc-800 flex items-center gap-2 mb-2">
                                 <FiUser /> Dados pessoais
                             </h2>
                             <div className="text-zinc-600 text-sm space-y-1">
@@ -208,14 +210,15 @@ export default function UserPage() {
                             </div>
                         </div>
 
-                        <div className="bg-zinc-50 border border-zinc-200 rounded-xl p-4">
-                            <div className="flex justify-between items-center mb-2">
-                                <h2 className="text-xl font-semibold text-zinc-800 flex items-center gap-2">
+                        {/* Meu carrinho */}
+                        <div className="bg-zinc-50 border border-zinc-200 rounded-xl p-3 sm:p-4">
+                            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-2 gap-3">
+                                <h2 className="text-lg sm:text-xl font-semibold text-zinc-800 flex items-center gap-2">
                                     <FiShoppingCart /> Meu carrinho
                                 </h2>
                                 <button
                                     onClick={() => navigate(`/checkout/${userData.id}`)}
-                                    className="bg-pink-300 cursor-pointer hover:bg-pink-400 text-zinc-800 px-4 py-2 rounded font-semibold transition"
+                                    className="w-full sm:w-auto bg-pink-300 hover:bg-pink-400 text-zinc-800 px-4 py-2 rounded font-semibold transition"
                                 >
                                     Ir para checkout
                                 </button>
@@ -226,9 +229,16 @@ export default function UserPage() {
                                     <p className="text-zinc-500">Seu carrinho está vazio.</p>
                                 ) : (
                                     cartItems.map(item => (
-                                        <div key={item.id} className="flex gap-4 items-center border rounded p-2 bg-white">
-                                            <img src={item.product.imageUrl} alt={item.product.description} className="w-20 h-20 object-cover rounded" />
-                                            <div>
+                                        <div
+                                            key={item.id}
+                                            className="flex flex-col sm:flex-row gap-4 items-center sm:items-start border rounded p-3 bg-white"
+                                        >
+                                            <img
+                                                src={item.product.imageUrl}
+                                                alt={item.product.description}
+                                                className="w-20 h-20 object-cover rounded"
+                                            />
+                                            <div className="text-center sm:text-left">
                                                 <h3 className="font-semibold text-zinc-800">{item.product.description}</h3>
                                                 <p>Preço: R$ {item.product.price.replace('.', ',')}</p>
                                                 {item.product.discount > 0 && (
@@ -242,14 +252,15 @@ export default function UserPage() {
                             </div>
                         </div>
 
-
                         {/* Endereços */}
-                        <div className="bg-zinc-50 border border-zinc-200 rounded-xl p-4">
-                            <div className="flex cursor-pointer justify-between items-center mb-2">
-                                <h2 className="text-xl font-semibold text-zinc-800 flex items-center gap-2"><FiMapPin /> Endereços</h2>
+                        <div className="bg-zinc-50 border border-zinc-200 rounded-xl p-3 sm:p-4">
+                            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-2 gap-3">
+                                <h2 className="text-lg sm:text-xl font-semibold text-zinc-800 flex items-center gap-2">
+                                    <FiMapPin /> Endereços
+                                </h2>
                                 <button
                                     onClick={() => setShowAddressModal(true)}
-                                    className="bg-pink-300 cursor-pointer hover:bg-pink-400 text-zinc-800 px-3 py-1 rounded font-semibold transition"
+                                    className="w-full sm:w-auto bg-pink-300 hover:bg-pink-400 text-zinc-800 px-3 py-1 rounded font-semibold transition"
                                 >
                                     + Novo
                                 </button>
@@ -262,13 +273,13 @@ export default function UserPage() {
                                     {addresses.map((addr) => (
                                         <li
                                             key={addr.id}
-                                            className={`bg-white p-4 rounded border flex justify-between items-center cursor-pointer ${selectedAddress?.id === addr.id
+                                            className={`bg-white p-3 sm:p-4 rounded border flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 cursor-pointer ${selectedAddress?.id === addr.id
                                                 ? 'border-pink-300 bg-zinc-100'
                                                 : 'border-zinc-300'
                                                 }`}
                                             onClick={() => setSelectedAddress(addr)}
                                         >
-                                            <div>
+                                            <div className="text-sm">
                                                 <p><strong>Rua:</strong> {addr.street}, {addr.number}</p>
                                                 <p><strong>Bairro:</strong> {addr.neighborhood}</p>
                                                 <p><strong>Cidade:</strong> {addr.city} - {addr.state}</p>
@@ -295,7 +306,7 @@ export default function UserPage() {
                         {/* Logout */}
                         <div className="flex justify-center pt-6">
                             <button
-                                className="flex items-center cursor-pointer gap-2 text-red-600 hover:text-red-800 font-medium transition"
+                                className="flex items-center gap-2 text-red-600 hover:text-red-800 font-medium transition"
                                 onClick={handleLogout}
                             >
                                 <FiLogOut /> Sair da conta
@@ -304,6 +315,7 @@ export default function UserPage() {
                     </div>
                 </section>
             </main>
+
 
             {/* Modal de endereço */}
             {

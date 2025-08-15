@@ -312,17 +312,22 @@ export default function CheckoutPage() {
         let sub = 0;
         let discount = 0;
 
-        for (const item of cartItems) {
-            const product = item.product || item;
-            const itemSubtotal = product.price * item.quantity;
-            sub += itemSubtotal;
+        if (cartItems && cartItems != [] && cartItems !== '') {
 
-            if (product.discount > 0) {
-                const itemDiscount = itemSubtotal * (product.discount / 100);
-                discount += itemDiscount;
+            for (const item of cartItems) {
+                const product = item.product || item;
+                const itemSubtotal = product.price * item.quantity;
+                sub += itemSubtotal;
+
+                if (product.discount > 0) {
+                    const itemDiscount = itemSubtotal * (product.discount / 100);
+                    discount += itemDiscount;
+                }
             }
+            return { subtotal: sub, totalDiscount: discount };
+        } else {
+            return { subtotal: 0, totalDiscount: 0 };
         }
-        return { subtotal: sub, totalDiscount: discount };
     }, [cartItems]);
 
     const totalFinal = (subtotal - totalDiscount) + frete;
@@ -472,31 +477,32 @@ export default function CheckoutPage() {
                         onClick={() => {
                             setShowModal(true)
                         }}
-                        className="mt-6 w-full bg-pink-300 hover:bg-pink-400 text-black cursor-pointer text-sm font-semibold py-2.5 rounded transition-all duration-200 shadow-sm"
+                        disabled={userId === null || !cartItems}
+                        className="disabled:bg-zinc-400 disabled:cursor-not-allowed mt-6 w-full bg-pink-300 hover:bg-pink-400 text-black cursor-pointer text-sm font-semibold py-2.5 rounded transition-all duration-200 shadow-sm"
                     >
                         Adicionar endereço
                     </button>
                 </section>
 
+                <section className="w-full sm:w-[45%] md:w-[35%] min-h-[300px] bg-white p-4 sm:p-6 rounded shadow flex flex-col justify-between border border-gray-300">
+                    <h2 className="text-xl sm:text-2xl font-semibold mb-4 sm:mb-6 text-center sm:text-left">Resumo</h2>
 
-                <section className="w-[35%] min-h-[300px] bg-white p-6 rounded shadow flex flex-col justify-between border border-gray-300">
-                    <h2 className="text-2xl font-semibold mb-6">Resumo</h2>
-                    <div>
-                        <div className="flex justify-between text-sm text-zinc-600">
-                            <span>Subtotal ({cartItems.length} iten(s))</span>
-                            <span>R$ {subtotal.toFixed(2).replaceAll('.', ',')}</span>
+                    <div className="space-y-2">
+                        <div className="flex justify-between text-sm sm:text-base text-zinc-600">
+                            <span>Subtotal ({cartItems?.length || 0} item(s))</span>
+                            <span>R$ {subtotal.toFixed(2).replace('.', ',')}</span>
                         </div>
-                        <div className="flex justify-between text-sm font-semibold text-green-600">
+                        <div className="flex justify-between text-sm sm:text-base font-semibold text-green-600">
                             <span>Desconto</span>
-                            <span>- R$ {Number(totalDiscount).toFixed(2).replaceAll('.', ',')}</span>
+                            <span>- R$ {Number(totalDiscount).toFixed(2).replace('.', ',')}</span>
                         </div>
-                        <div className="flex justify-between text-lg font-bold mt-4 border-t pt-2">
+                        <div className="flex justify-between text-lg sm:text-xl font-bold mt-4 border-t pt-2">
                             <span>Total</span>
-                            <span>R$ {totalFinal.toFixed(2).replaceAll('.', ',')}</span>
+                            <span>R$ {totalFinal.toFixed(2).replace('.', ',')}</span>
                         </div>
                     </div>
 
-                    <div className="mt-6 space-y-3">
+                    <div className="mt-4 sm:mt-6 space-y-3">
                         <div className='w-full flex justify-center items-center'>
                             <PulseLoader
                                 loading={isPaymentLoading}
@@ -504,46 +510,28 @@ export default function CheckoutPage() {
                             />
                         </div>
 
-
-                        {/* QUANDO O ID DA PREFERÊNCIA EXISTIR, RENDERIZE O BOTÃO DO MERCADO PAGO */}
                         {preferenceId && (
                             <Wallet
-                                initialization={{ preferenceId: preferenceId }}
+                                initialization={{ preferenceId }}
                                 customization={{ texts: { valueProp: 'smart_option' } }}
-                                onSubmit={() => {
-
-                                }}
-                                onReady={() => {
-
-                                }}
-                                onError={() => {
-
-                                }}
+                                onSubmit={() => { }}
+                                onReady={() => { }}
+                                onError={() => { }}
                             />
                         )}
 
-                        {/* SE O BOTÃO DE PAGAMENTO AINDA NÃO FOI GERADO */}
                         {!preferenceId && !isPaymentLoading && (
-                            <>
-                                <button
-                                    onClick={handlePayment}
-                                    disabled={isPaymentLoading || cartItems.length === 0}
-                                    className="w-full bg-cyan-500 hover:bg-cyan-600 text-black px-5 py-3 rounded font-semibold transition cursor-pointer disabled:bg-zinc-400"
-                                >
-                                    {isPaymentLoading ? 'Gerando pagamento...' : 'Finalizar e pagar'}
-                                </button>
-
-                                {/*<button
-                                    onClick={finalizarViaWhatsapp}
-                                    disabled={cartItems.length === 0}
-                                    className="w-full bg-green-500 hover:bg-green-600 text-black px-5 py-3 rounded font-semibold transition cursor-pointer disabled:bg-zinc-400"
-                                >
-                                    Finalizar via WhatsApp
-                                </button>*/}
-                            </>
+                            <button
+                                onClick={handlePayment}
+                                disabled={isPaymentLoading || !cartItems?.length}
+                                className="w-full bg-cyan-500 hover:bg-cyan-600 text-black px-4 py-3 rounded font-semibold transition cursor-pointer disabled:bg-zinc-400 disabled:cursor-not-allowed"
+                            >
+                                {isPaymentLoading ? 'Gerando pagamento...' : 'Finalizar e pagar'}
+                            </button>
                         )}
                     </div>
                 </section>
+
             </div>
 
             {/* --- Modal de endereços --- */}
@@ -614,47 +602,69 @@ export default function CheckoutPage() {
             )}
 
             {/* --- Produtos no carrinho --- */}
-            <section className="border border-gray-300 rounded p-6 shadow mx-6">
-                <div className="flex items-center gap-2 mb-4">
-                    <h2 className="text-xl font-semibold">Produtos ({cartItems.length})</h2>
+            <section className="border border-gray-300 rounded p-4 sm:p-6 shadow mx-2 sm:mx-6">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
+                    <h2 className="text-lg sm:text-xl font-semibold">
+                        Produtos ({cartItems?.length || 0})
+                    </h2>
                     {isSyncing && (
                         <span className="flex items-center gap-1 text-sm text-gray-500">
                             <HiOutlineCloudArrowUp className="animate-pulse" /> Salvando...
                         </span>
                     )}
                 </div>
-                {cartItems.map((item) => {
+
+                {cartItems?.map((item) => {
                     const product = item.product;
                     const productId = product.id;
+
                     return (
-                        <div key={product.id} className="flex items-center gap-4 border-b last:border-b-0 py-4">
+                        <div
+                            key={productId}
+                            className="flex flex-col sm:flex-row sm:items-center gap-4 border-b last:border-b-0 py-4"
+                        >
                             <img
                                 src={product.imageUrl}
                                 alt={product.description}
-                                className="w-20 h-20 object-contain rounded"
+                                className="w-full sm:w-20 h-40 sm:h-20 object-contain rounded mx-auto sm:mx-0"
                             />
-                            <div className="flex-1">
-                                <p className="text-zinc-800 text-sm">{product.description}</p>
-                                <p className="font-semibold mt-1">
-                                    R$ {product.price}
-                                </p>
-                            </div>
-                            <div className="flex items-center gap-2 border rounded px-2 py-1">
-                                <button className='cursor-pointer' onClick={() => handleUpdateQuantity(productId, item.quantity - 1)}>
-                                    <HiMinus />
+
+                            <div className="flex-1 flex flex-col sm:flex-row sm:justify-between gap-2 mt-2 sm:mt-0">
+                                <div className="flex-1">
+                                    <p className="text-zinc-800 text-sm">{product.description}</p>
+                                    <p className="font-semibold mt-1">
+                                        R$ {product.price.toFixed(2).replace('.', ',')}
+                                    </p>
+                                </div>
+
+                                <div className="flex items-center gap-2 border rounded px-2 py-1 mt-2 sm:mt-0">
+                                    <button
+                                        className='cursor-pointer'
+                                        onClick={() => handleUpdateQuantity(productId, item.quantity - 1)}
+                                    >
+                                        <HiMinus />
+                                    </button>
+                                    <span>{item.quantity}</span>
+                                    <button
+                                        className='cursor-pointer'
+                                        onClick={() => handleUpdateQuantity(productId, item.quantity + 1)}
+                                    >
+                                        <HiPlus />
+                                    </button>
+                                </div>
+
+                                <button
+                                    className='cursor-pointer mt-2 sm:mt-0'
+                                    onClick={() => handleRemove(productId)}
+                                >
+                                    <HiTrash size={20} />
                                 </button>
-                                <span>{item.quantity}</span>
-                                <button className='cursor-pointer' onClick={() => handleUpdateQuantity(productId, item.quantity + 1)}>
-                                    <HiPlus />
-                                </button>
                             </div>
-                            <button className='cursor-pointer' onClick={() => handleRemove(productId)}>
-                                <HiTrash size={20} />
-                            </button>
                         </div>
-                    )
+                    );
                 })}
             </section>
+
 
             <Footer />
         </div>

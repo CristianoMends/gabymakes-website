@@ -6,6 +6,7 @@ import {
 } from "recharts";
 import { FiCalendar, FiDollarSign, FiTrendingUp } from "react-icons/fi";
 import Loading from "../components/loading";
+import { FaMedal } from "react-icons/fa";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
@@ -29,10 +30,67 @@ export default function Dashboard() {
     const [topBrands, setTopBrands] = useState([]);
     const [topRevenueProducts, setTopRevenueProducts] = useState([]);
 
-    // Novos estados para receita
+    const [whatsappClicks, setWhatsappClicks] = useState([]);
+    const [productRanking, setProductRanking] = useState([]);
+
     const [revenueCurrentMonth, setRevenueCurrentMonth] = useState(0);
     const [revenueTotal, setRevenueTotal] = useState(0);
     const [revenueToday, setRevenueToday] = useState(0);
+
+    function truncateText(text, maxLength) {
+        if (!text) return "";
+        return text.length > maxLength ? text.slice(0, maxLength) + "..." : text;
+    }
+
+    useEffect(() => {
+        const fetchWhatsappClicks = async () => {
+            try {
+                const token = localStorage.getItem("accessToken");
+                const res = await axios.get(
+                    `${API_BASE_URL}/tracking?type=whatsapp_click`,
+                    {
+                        headers: { Authorization: `Bearer ${token}` },
+                    }
+                );
+
+                const events = res.data;
+
+                // Agrupa por data para o gráfico
+                const groupedByDate = events.reduce((acc, event) => {
+                    const date = new Date(event.createdAt).toLocaleDateString("pt-BR");
+                    acc[date] = (acc[date] || 0) + 1;
+                    return acc;
+                }, {});
+
+                const chartData = Object.entries(groupedByDate).map(([date, clicks]) => ({
+                    date,
+                    clicks,
+                }));
+
+                // Agrupa por produto para o ranking
+                const groupedByProduct = events.reduce((acc, event) => {
+                    if (!event.product) return acc;
+                    const id = event.product.id;
+                    if (!acc[id]) {
+                        acc[id] = { ...event.product, clicks: 0 };
+                    }
+                    acc[id].clicks += 1;
+                    return acc;
+                }, {});
+
+                const ranking = Object.values(groupedByProduct)
+                    .sort((a, b) => b.clicks - a.clicks).slice(0, 3);
+
+                setWhatsappClicks(chartData);
+                setProductRanking(ranking);
+
+            } catch (error) {
+                console.error("Erro ao buscar cliques no WhatsApp", error);
+            }
+        };
+
+        fetchWhatsappClicks();
+    }, []);
 
     useEffect(() => {
         const fetchOrders = async () => {
@@ -117,7 +175,10 @@ export default function Dashboard() {
                 });
                 setTopProducts(
                     Object.entries(productSales)
-                        .map(([description, quantity]) => ({ name: description, value: quantity }))
+                        .map(([description, quantity]) => ({
+                            name: description,
+                            value: quantity
+                        }))
                         .sort((a, b) => b.value - a.value)
                         .slice(0, 5)
                 );
@@ -164,7 +225,7 @@ export default function Dashboard() {
                 });
                 setTopRevenueProducts(
                     Object.entries(productRevenue)
-                        .map(([description, revenue]) => ({ name: description, value: revenue }))
+                        .map(([description, revenue]) => ({ name: truncateText(description, 20), value: revenue }))
                         .sort((a, b) => b.value - a.value)
                         .slice(0, 5)
                 );
@@ -210,7 +271,7 @@ export default function Dashboard() {
 
             {/* Linha 1: gráfico de pedidos por mês - barra */}
             <section>
-                <h2 className="text-lg font-semibold mb-3">Volume de Pedidos por Mês</h2>
+                <h2 className="text-lg font-semibold mb-3 text-center">Volume de Pedidos por Mês</h2>
                 <div className="w-full h-72">
                     <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={monthlyOrders} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
@@ -225,10 +286,10 @@ export default function Dashboard() {
             </section>
 
             {/* Linha 2: Produtos e Categorias lado a lado - pizza charts */}
-            <section className="flex items-center justify-center flex-wrap gap-6">
-                <div className="flex-1 w-[300px] max-w-[50%] h-64">
-                    <h2 className="text-lg font-semibold mb-3">Produtos Mais Vendidos</h2>
-                    <ResponsiveContainer width="100%" height="100%">
+            <section className="flex items-start justify-between flex-wrap gap-6 h-[500px]">
+                <div className="flex-1 w-[300px] max-w-[50%] h-full border-gray-500 border-[1px] rounded-[5px] p-[5px]">
+                    <h2 className="text-lg font-semibold mb-3 text-center">Produtos Mais Vendidos</h2>
+                    <ResponsiveContainer width="100%" height="90%">
                         <PieChart>
                             <Pie
                                 data={topProducts}
@@ -245,14 +306,13 @@ export default function Dashboard() {
                                 ))}
                             </Pie>
                             <Tooltip formatter={(value) => [value, "Quantidade"]} />
-                            <Legend />
                         </PieChart>
                     </ResponsiveContainer>
                 </div>
 
-                <div className="flex-1 w-[300px] max-w-[600px] h-64">
-                    <h2 className="text-lg font-semibold mb-3">Categorias com Maior Volume de Vendas</h2>
-                    <ResponsiveContainer width="100%" height="100%">
+                <div className="flex-1 w-[300px] max-w-[50%] h-full border-gray-500 border-[1px] rounded-[5px] p-[5px]">
+                    <h2 className="text-lg font-semibold mb-3 text-center">Categorias com Maior Volume de Vendas</h2>
+                    <ResponsiveContainer width="100%" height="90%">
                         <PieChart>
                             <Pie
                                 data={topCategories}
@@ -276,10 +336,10 @@ export default function Dashboard() {
             </section>
 
             {/* Linha 3: Marcas e Receita lado a lado - pizza charts */}
-            <section className="flex items-center justify-center flex-wrap gap-6">
-                <div className="flex flex-col flex-1 w-[300px] max-w-[600px] h-64">
-                    <h2 className="text-lg font-semibold mb-3">Marcas Mais Populares</h2>
-                    <ResponsiveContainer width="100%" height="100%">
+            <section className="flex items-start justify-between flex-wrap gap-6 h-[500px]">
+                <div className="flex-1 w-[300px] max-w-[50%] h-full border-gray-500 border-[1px] rounded-[5px] p-[5px]">
+                    <h2 className="text-lg font-semibold mb-3 text-center">Marcas Mais Populares</h2>
+                    <ResponsiveContainer width="100%" height="90%">
                         <PieChart>
                             <Pie
                                 data={topBrands}
@@ -301,9 +361,9 @@ export default function Dashboard() {
                     </ResponsiveContainer>
                 </div>
 
-                <div className="flex flex-col flex-1 w-[300px] max-w-[50%] h-64">
-                    <h2 className="text-lg font-semibold mb-3">Produtos com Maior Receita</h2>
-                    <ResponsiveContainer width="100%" height="100%">
+                <div className="flex-1 w-[300px] max-w-[50%] h-full border-gray-500 border-[1px] rounded-[5px] p-[5px]">
+                    <h2 className="text-lg font-semibold mb-3 text-center">Produtos com Maior Receita</h2>
+                    <ResponsiveContainer width="100%" height="90%">
                         <PieChart>
                             <Pie
                                 data={topRevenueProducts}
@@ -320,11 +380,74 @@ export default function Dashboard() {
                                 ))}
                             </Pie>
                             <Tooltip formatter={(value) => [`R$ ${value.toFixed(2)}`, "Receita"]} />
-                            <Legend />
                         </PieChart>
                     </ResponsiveContainer>
                 </div>
             </section>
+
+            <section className="mt-10 h-max">
+                {/* Gráfico */}
+                <div className="w-full h-72 mb-8 border-gray-500 border-[1px] rounded-[5px] p-[5px]">
+                    <h2 className="text-lg font-semibold mb-3 text-center">
+                        Pedidos via WhatsApp
+                    </h2>
+                    <ResponsiveContainer width="100%" height="90%">
+                        <BarChart data={whatsappClicks} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="date" />
+                            <YAxis allowDecimals={false} />
+                            <Tooltip formatter={(value) => [`${value} cliques`, "Cliques"]} />
+                            <Bar dataKey="clicks" fill="#25D366" />
+                        </BarChart>
+                    </ResponsiveContainer>
+                </div>
+
+                {/* Ranking de produtos */}
+                <div className="border-gray-500 border-[1px] rounded-[5px] p-[5px]">
+                    <h2 className="text-lg font-semibold mb-3 text-center">
+                        Produtos mais pedidos via Whatsapp
+                    </h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {productRanking.map((product, index) => {
+                            // Define cor das medalhas
+                            let medalColor = '';
+                            if (index === 0) medalColor = 'text-yellow-400'; // 1º lugar - ouro
+                            else if (index === 1) medalColor = 'text-gray-400'; // 2º lugar - prata
+                            else if (index === 2) medalColor = 'text-orange-500'; // 3º lugar - bronze
+
+                            return (
+                                <div
+                                    key={product.id}
+                                    className="relative flex items-center p-4 border rounded-lg shadow-sm bg-white"
+                                >
+                                    {/* Medalha do ranking */}
+                                    {index < 3 && (
+                                        <FaMedal
+                                            className={`absolute top-2 left-2 w-6 h-6 ${medalColor}`}
+                                            title={`${index + 1}º lugar`}
+                                        />
+                                    )}
+
+                                    <img
+                                        src={product.imageUrl}
+                                        alt={product.description}
+                                        className="w-16 h-16 object-cover rounded"
+                                    />
+                                    <div className="ml-4 flex-1">
+                                        <h4 className="text-sm font-medium">{product.description}</h4>
+                                        <p className="text-xs text-gray-500">
+                                            {product.brand} — {product.category}
+                                        </p>
+                                        <p className="text-green-600 font-semibold">{product.clicks} cliques</p>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            </section>
+
+
         </div>
     );
 }

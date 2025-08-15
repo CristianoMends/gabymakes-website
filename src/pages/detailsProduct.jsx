@@ -9,7 +9,12 @@ import { useNavigate } from 'react-router-dom';
 import InnerImageZoom from 'react-inner-image-zoom';
 import 'react-inner-image-zoom/lib/styles.min.css'
 import ConfirmationModal from '../components/confirmationModal';
-import { FaWhatsapp, FaShoppingCart, FaCreditCard } from 'react-icons/fa';
+import { FaWhatsapp } from 'react-icons/fa';
+import { MdOutlineShoppingBag } from "react-icons/md";
+import { BiPurchaseTagAlt } from "react-icons/bi";
+import RelatedProducts from '../components/RelatedProducts';
+
+
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -70,17 +75,32 @@ export default function ProductDetailPage() {
   }, []);
 
   const handleBuyNow = () => {
-    if (!isLoggedIn || !userId) {
+    /*if (!isLoggedIn || !userId) {
       setConfirmation(true);
       return;
-    }
+    }*/
     const url = `/buynow/${userId}?productId=${id}&quantity=${quantity}`;
 
     navigate(url);
   }
 
-  const sendProductWhatsappMessage = () => {
+  const sendProductWhatsappMessage = async () => {
     if (!product) return;
+
+    try {
+      await fetch(`${API_BASE_URL}/tracking`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "whatsapp_click",
+          product: { id: product.id },
+          quantity,
+          user: { id: userId } || null,
+        }),
+      });
+    } catch (err) {
+      console.error("Falha ao registrar evento no tracking:", err);
+    }
 
     const textoProduto = `🛍️ ${(product.description || '').slice(0, 100)}\nQuantidade: ${quantity}x\n💰 Preço unitário: R$ ${(product.price - (product.price * (product.discount / 100))).toFixed(2).replace('.', ',')}`;
 
@@ -186,44 +206,49 @@ export default function ProductDetailPage() {
 
 
       <Header />
-      <main className="max-w-6xl mx-auto px-4 py-10">
+      <main className="max-w-6xl mx-auto px-4 py-10 min-h-[80vh]">
         <Breadcrumb customLast={(product.description || '').slice(0, 100)} />
-        <div className="grid min-h-[60vh] md:grid-cols-2 gap-10 mt-[50px]">
-          <div className="group w-50 hover:w-full max-w-md mx-auto md:mx-0 overflow-hidden rounded">
-            <InnerImageZoom
-              src={product.imageUrl || '/default-image.jpg'}
-              zoomSrc={product.imageUrl || '/default-image.jpg'}
-              zoomType="hover"
-              zoomPreload={true}
-              alt={product.name}
-              className="w-full max-w-md rounded"
-            />
+
+        {/* Grid responsivo: 1 coluna no mobile, 2 colunas em md */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-6">
+          <div className="w-full flex justify-center md:justify-start">
+            <div className="w-full max-w-sm md:max-w-md h-[300px] md:h-[400px] flex justify-center items-center rounded shadow-sm overflow-hidden">
+              <img src={product.imageUrl || '/default-image.jpg'} alt={product.description || ''} className="w-full h-full object-contain" />
+              {/*<InnerImageZoom
+                src={product.imageUrl || '/default-image.jpg'}
+                zoomSrc={product.imageUrl || '/default-image.jpg'}
+                zoomType="hover"
+                zoomPreload={true}
+                alt={product.name}
+                className="w-full h-full object-contain"
+              />*/}
+            </div>
           </div>
 
 
-          <div className='p-4 rounded w-max'>
-            <h1 className="text-2xl font-bold mb-2">{product.brand}</h1>
-            {/* Note que a descrição completa ainda é exibida para o usuário */}
-            <p className="text-sm whitespace-pre-line mb-4">{product.description}</p>
+          {/* Informações do produto */}
+          <div className="flex flex-col w-full p-2 rounded">
+            <h1 className="text-2xl md:text-3xl font-bold mb-2">{product.brand}</h1>
+            <p className="text-sm md:text-base whitespace-pre-line mb-4">{product.description}</p>
 
             {product.discount > 0 && (
-              <p className="text-sm text-gray-500 font-bold mb-2 line-through">
+              <p className="text-sm md:text-base text-gray-500 font-bold mb-2 line-through">
                 R$ {product.price.toFixed(2).replace('.', ',')}
               </p>
             )}
 
-            <p className="text-[2rem] text-pink-500 font-bold mb-2">
+            <p className="text-2xl md:text-3xl text-pink-500 font-bold mb-4">
               R$ {(product.price - (product.price * (product.discount / 100))).toFixed(2).replace('.', ',')}
             </p>
 
-
-            <div className="mb-6">
-              <label className="block mb-2 font-semibold">Quantidade:</label>
-              <div className="flex items-center gap-2 w-fit border rounded px-2 py-1">
+            {/* Quantidade */}
+            <div className="mb-6 flex items-center gap-2 ">
+              <label className="block font-semibold mr-2">Quantidade:</label>
+              <div className="flex items-center gap-2 border rounded px-2 py-1">
                 <button
                   type="button"
                   onClick={() => setQuantity(q => Math.max(1, q - 1))}
-                  className="text-xl cursor-pointer font-bold px-2 text-pink-500 hover:text-pink-700"
+                  className="text-xl font-bold text-pink-500 hover:text-pink-700"
                 >
                   −
                 </button>
@@ -231,31 +256,32 @@ export default function ProductDetailPage() {
                 <button
                   type="button"
                   onClick={() => setQuantity(q => q + 1)}
-                  className="text-xl font-bold cursor-pointer px-2 text-pink-500 hover:text-pink-700"
+                  className="text-xl font-bold text-pink-500 hover:text-pink-700"
                 >
                   +
                 </button>
               </div>
             </div>
 
-            <div className="flex w-full justify-between gap-4">
+            {/* Botões: stack vertical no mobile, horizontal em md */}
+            <div className="flex flex-col md:flex-row gap-2">
               <button
                 onClick={handleBuyNow}
-                className="flex items-center flex-col w-max bg-[#FFA5BD] cursor-pointer text-black p-2 rounded shadow hover:bg-[#ff8cae] transition-colors duration-300 flex items-center"
+                className="flex flex-col cursor-pointer items-center justify-center gap-2 bg-[#FFA5BD] text-black p-2 rounded shadow hover:bg-[#ff8cae] transition-colors duration-300"
               >
-                <FaCreditCard /> comprar agora
+                <BiPurchaseTagAlt /> comprar agora
               </button>
 
               <button
-                onClick={() => handleAddToCart()}
-                className="flex items-center flex-col w-max bg-[#FFA5BD] cursor-pointer text-black p-2 rounded shadow hover:bg-[#ff8cae] transition-colors duration-300 flex items-center"
+                onClick={handleAddToCart}
+                className="flex flex-col cursor-pointer items-center justify-center gap-2 bg-[#FFA5BD] text-black p-2 rounded shadow hover:bg-[#ff8cae] transition-colors duration-300"
               >
-                <FaShoppingCart /> adicionar à sacola
+                <MdOutlineShoppingBag /> adicionar à sacola
               </button>
 
               <button
-                onClick={() => sendProductWhatsappMessage()}
-                className="flex items-center flex-col w-max h-full bg-green-300 cursor-pointer text-black p-2 rounded shadow hover:bg-green-400 transition-colors duration-300 flex items-center"
+                onClick={sendProductWhatsappMessage}
+                className="flex flex-col cursor-pointer items-center justify-center gap-2 bg-green-300 text-black p-2 rounded shadow hover:bg-green-400 transition-colors duration-300"
               >
                 <FaWhatsapp /> Comprar via WhatsApp
               </button>
@@ -263,6 +289,8 @@ export default function ProductDetailPage() {
           </div>
         </div>
       </main>
+      <RelatedProducts productId={product.id} category={product.category} userId={userId} />
+
       <Footer />
 
       {message && (

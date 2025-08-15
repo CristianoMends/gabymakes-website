@@ -18,12 +18,12 @@ export default function Message({ type, message, onClose }) {
     const typeClasses = getClasses(type);
 
     return (
-        <div className="fixed bottom-6 right-6 z-[9999] max-w-sm w-full">
+        <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-[9999] w-[90%] max-w-sm sm:w-auto">
             <div
-                className={`p-4 rounded-md border-l-4 shadow-md flex items-center justify-between ${typeClasses}`}
+                className={`p-3 sm:p-4 rounded-md border-l-4 shadow-md flex items-center justify-between ${typeClasses}`}
                 role="alert"
             >
-                <p className="font-bold text-sm sm:text-base mr-4">{message}</p>
+                <p className="font-bold text-sm sm:text-base mr-2 sm:mr-4 break-words">{message}</p>
                 {onClose && (
                     <button
                         onClick={onClose}
