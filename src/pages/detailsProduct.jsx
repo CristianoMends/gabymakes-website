@@ -12,7 +12,7 @@ import ConfirmationModal from '../components/confirmationModal';
 import { FaWhatsapp } from 'react-icons/fa';
 import { MdOutlineShoppingBag } from "react-icons/md";
 import { BiPurchaseTagAlt } from "react-icons/bi";
-import RelatedProducts from '../components/relatedProducts';
+import RelatedProducts from '../components/RelatedProducts';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
