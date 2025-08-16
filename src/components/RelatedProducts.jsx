@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import ProductCard from './components/ProductCard';
+import ProductCard from './productcard';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
