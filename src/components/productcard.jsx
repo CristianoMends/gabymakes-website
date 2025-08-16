@@ -1,6 +1,5 @@
 import { useNavigate } from "react-router-dom";
 import cardPlaceholder from '../assets/card-content.png';
-import { useState } from "react";
 
 export default function ProductCard({ product, cloudUrl, userId }) {
     const navigate = useNavigate();
